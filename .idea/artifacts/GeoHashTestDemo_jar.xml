@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="GeoHashTestDemo:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/GeoHashTestDemo_jar</output-path>
+    <root id="root">
+      <element id="archive" name="GeoHashTestDemo.jar">
+        <element id="module-output" name="GeoHashTestDemo" />
+      </element>
+      <element id="library" level="project" name="GeoHashTestDemo" />
+    </root>
+  </artifact>
+</component>

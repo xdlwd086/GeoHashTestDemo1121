@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="UDFRectangleDemo">
+    <output-path>$PROJECT_DIR$/out/artifacts/UDFRectangleDemo</output-path>
+    <root id="archive" name="UDFRectangleDemo.jar">
+      <element id="file-copy" path="$PROJECT_DIR$/out/production/GeoHashTestDemo/cc/xidian/PhoenixOperation/UDFJTSDemo.class" />
+    </root>
+  </artifact>
+</component>

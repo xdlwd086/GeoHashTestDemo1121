@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="GeoHashTestDemo">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/google-collections-0.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/phoenix-4.4.0-HBase-0.98-client.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
