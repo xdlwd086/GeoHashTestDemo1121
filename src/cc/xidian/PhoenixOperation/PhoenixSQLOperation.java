@@ -649,14 +649,10 @@ public class PhoenixSQLOperation {
                 GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(rQS,searchDepthManual);
         String strDirectJudge = "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
                 + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
-//        String sqlDirectJudgeQuery = "select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong from geoPointTableLWD1MGS where " +
-//                "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
-//                + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
         //输出测试
         //for(long[] g:geoHashLongQueryResults){
         //System.out.println(g[0]+"#"+g[1]);
         //}
-        //String sqlGeoHashQueryUnionAllBetweenAnd = sqlDirectJudgeQuery+" Union all  ";
         String sqlGeoHashQueryUnionAllBetweenAnd = "";
         int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
         //输出测试
@@ -673,17 +669,10 @@ public class PhoenixSQLOperation {
         //最后一个geoHash段
         long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength-1);
         //geoHash段的SQL语句字符串
-        //sqlWhereConstraint +="geoHashValueLong between "+gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
-
         sqlGeoHashQueryUnionAllBetweenAnd += "Select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong " +
                 "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strDirectJudge;
-        //RectangleQuery4:geoHash段+直接判断的SQL语句字符串
-//        String sqlGeoHashDirectJudgeQuery = "Select * from geoPointTableLWD1MGP where ("+sqlWhereConstraint+" ) and "
-//                + "xLongitude>="+xLongitudeBLQS+" and "+"xLongitude <= "+xLongitudeTRQS+ " and "
-//                +"yLatitude >= "+yLatitudeBLQS+" and "+"yLatitude <= "+yLatitudeTRQS;
         try {
             rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAnd);
-            //rs = stmt.executeQuery(sqlDirectJudgeQuery);
             //此处判断不能用rs.next()，否则最终得到的结果集会少一个
             if(rs.wasNull()){
                 System.out.println("未找到记录，查询出错！");
