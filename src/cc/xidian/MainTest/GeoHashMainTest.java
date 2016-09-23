@@ -73,9 +73,9 @@ public class GeoHashMainTest {
 //        hashMap.put("rQS1234",rQS1234);
 //        //Map.Entry<String,RectangleQueryScope> r = hashMap.get()
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1234;
+        r = rQS1234min2;
 //        for(Map.Entry<String,RectangleQueryScope> r:hashMap.entrySet()){
-            System.out.println("================================"+"rQS1234"+"=====================================");
+            System.out.println("================================"+"rQS1234min2"+"=====================================");
             //int searchDepthManual = 1;//搜索深度
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //            long startTimeQueryWithoutIndex = System.currentTimeMillis();
@@ -105,63 +105,62 @@ public class GeoHashMainTest {
 //            System.out.println("RectangleRangeQueryWithIndex-SizeAndTime:"+gPTRWithUDFFunction.size()
 //                    +"#"+(endTimeQueryWithUDFFunction - startTimeQueryWithUDFFunction)/1000.0);
             //2.4GeoHash查询，三种情况，改变搜索深度，进行查询
-            for(int searchDepthManual = 5;searchDepthManual<=20;searchDepthManual++) {
-                System.out.println("-----------------------------------------------------------------");
-                long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
-                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
-                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexUnionAllAndDirectJudge(r, searchDepthManual);
-                long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
-                ArrayList<long[]> gGeoHashLongs =
-                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r, searchDepthManual);
-//                ArrayList<String[]> gGeoHashLongs =
-//                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore60(r,searchDepthManual);
-                System.out.println("RectangleQueryScope: " + r.toString());
-                System.out.println("GeoHashIndexAlgorithm-SearchDepthAndSearchTime: " + searchDepthManual
-                        + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0);
-                System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
-                        + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size());
-            }
-
-
+            for(int searchDepthManual = 1;searchDepthManual<=20;searchDepthManual++) {
+//                System.out.println("-----------------------------------------------------------------");
 //                long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
 //                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndSecondFiltering(r, searchDepthManual);
+//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndUDFFunctionUnionAll(r, searchDepthManual);
 //                long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
-//                long startTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
-//                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndDirectJudge =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndDirectJudge(r, searchDepthManual);
-//                long endTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
-//                long startTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
-//                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndUDFFunction =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndUDFFunction(r,searchDepthManual);
-//                long endTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
-//                //for(GeoPointTableRecord g:geoPointTableRecordsWithIndexTest){
-//                //System.out.println(g.toString());
-//                //}
 //                ArrayList<long[]> gGeoHashLongs =
-//                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r,searchDepthManual);
+//                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r, searchDepthManual);
+////                ArrayList<String[]> gGeoHashLongs =
+////                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore60(r,searchDepthManual);
 //                System.out.println("RectangleQueryScope: " + r.toString());
-//                System.out.println("GeoHashIndexAlgorithm-SearchDepthAndSearchTime: "+searchDepthManual
-//                        +"#"+(endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering)/1000.0
-//                        +"%"+(endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0
-//                        +"%"+(endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0);
+//                System.out.println("GeoHashIndexAlgorithm-SearchDepthAndSearchTime: " + searchDepthManual
+//                        + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0);
 //                System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
-//                        + gGeoHashLongs.size()+"#"+gPTRWithGeoHashAndSecondFiltering.size()
-//                        +"%"+gPTRWithGeoHashAndDirectJudge.size()+"%"+gPTRWithGeoHashAndUDFFunction.size());
-//                String strSDTGeoHashAndSecondFiltering = searchDepthManual
-//                        +","+((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0)+"\n";
-//                File fileSDTGeoHashAndSecondFiltering = new File("rQS2SDTGeoHashAndSecondFiltering.txt");
-//                FileUtil.writeToFile(fileSDTGeoHashAndSecondFiltering,strSDTGeoHashAndSecondFiltering);
-//                String strSDTGeoHashAndDirectJudge = searchDepthManual
-//                        +","+((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0)+"\n";
-//                File fileSDTGeoHashAndDirectJudge = new File("rQS2SDTGeoHashAndDirectJudge.txt");
-//                FileUtil.writeToFile(fileSDTGeoHashAndDirectJudge,strSDTGeoHashAndDirectJudge);
-//                String strSDTGeoHashAndUDFFunction = searchDepthManual
-//                        +","+((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
-//                File fileSDTGeoHashAndUDFFunction = new File("rQS2SDTGeoHashAndUDFFunction.txt");
-//                FileUtil.writeToFile(fileSDTGeoHashAndUDFFunction,strSDTGeoHashAndUDFFunction);
+//                        + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size());
+//            }
 
-           //}
+
+                long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
+                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
+                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndSecondFilteringUnionAll(r, searchDepthManual);
+                long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
+                long startTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
+                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndDirectJudge =
+                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndDirectJudgeUnionAll(r, searchDepthManual);
+                long endTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
+                long startTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
+                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndUDFFunction =
+                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndUDFFunctionUnionAll(r, searchDepthManual);
+                long endTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
+                //for(GeoPointTableRecord g:geoPointTableRecordsWithIndexTest){
+                //System.out.println(g.toString());
+                //}
+                ArrayList<long[]> gGeoHashLongs =
+                        GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r,searchDepthManual);
+                System.out.println("RectangleQueryScope: " + r.toString());
+                System.out.println("GeoHashIndexAlgorithm-SearchDepthAndSearchTime: "+searchDepthManual
+                        +"#"+(endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering)/1000.0
+                        +"%"+(endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0
+                        +"%"+(endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0);
+                System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
+                        + gGeoHashLongs.size()+"#"+gPTRWithGeoHashAndSecondFiltering.size()
+                        +"%"+gPTRWithGeoHashAndDirectJudge.size()+"%"+gPTRWithGeoHashAndUDFFunction.size());
+                String strSDTGeoHashAndSecondFiltering = searchDepthManual
+                        +","+((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0)+"\n";
+                File fileSDTGeoHashAndSecondFiltering = new File("rQS1234min2SDTGeoHashAndSecondFiltering.txt");
+                FileUtil.writeToFile(fileSDTGeoHashAndSecondFiltering,strSDTGeoHashAndSecondFiltering);
+                String strSDTGeoHashAndDirectJudge = searchDepthManual
+                        +","+((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0)+"\n";
+                File fileSDTGeoHashAndDirectJudge = new File("rQS1234min2SDTGeoHashAndDirectJudge.txt");
+                FileUtil.writeToFile(fileSDTGeoHashAndDirectJudge,strSDTGeoHashAndDirectJudge);
+                String strSDTGeoHashAndUDFFunction = searchDepthManual
+                        +","+((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
+                File fileSDTGeoHashAndUDFFunction = new File("rQS1234min2SDTGeoHashAndUDFFunction.txt");
+                FileUtil.writeToFile(fileSDTGeoHashAndUDFFunction,strSDTGeoHashAndUDFFunction);
+           }
         //}
 
 //        long startTimeQueryWithIndexTest = System.currentTimeMillis();

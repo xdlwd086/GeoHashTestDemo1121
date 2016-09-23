@@ -455,7 +455,7 @@ public class PhoenixSQLOperation {
      * @param searchDepthManual geoHash搜索深度，需要手动设置，以后可能会修改
      * @return 矩形查询后的记录
      */
-    public static ArrayList<GeoPointTableRecord> selectAndQueryRecordsWithLongGeoHashIndexAndSecondFiltering(RectangleQueryScope rQS,int searchDepthManual){
+    public static ArrayList<GeoPointTableRecord> selectAndQueryRecordsWithGeoHashIndexAndSecondFilteringUnionAll(RectangleQueryScope rQS,int searchDepthManual){
         ResultSet rs;//查询结果集
         ArrayList<GeoPointTableRecord> geoPointTableRecords = new ArrayList<GeoPointTableRecord>();//保存查询结果记录的数组
         //GeoHash索引部分
@@ -641,15 +641,17 @@ public class PhoenixSQLOperation {
      * @param searchDepthManual geoHash搜索深度，需要手动设置，以后可能会修改
      * @return 矩形查询后的记录
      */
-    public static ArrayList<GeoPointTableRecord> selectAndQueryRecordsWithGeoHashIndexUnionAllAndDirectJudge(RectangleQueryScope rQS,int searchDepthManual){
+    public static ArrayList<GeoPointTableRecord> selectAndQueryRecordsWithGeoHashIndexAndDirectJudgeUnionAll(RectangleQueryScope rQS,int searchDepthManual){
         ResultSet rs;//查询结果集
         ArrayList<GeoPointTableRecord> geoPointTableRecords = new ArrayList<GeoPointTableRecord>();//保存查询结果记录的数组
         //GeoHash索引部分
         ArrayList<long[]> geoHashLongQueryResults =
                 GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(rQS,searchDepthManual);
-        String sqlDirectJudgeQuery = "select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong from geoPointTableLWD1MGS where " +
-                "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
+        String strDirectJudge = "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
                 + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
+//        String sqlDirectJudgeQuery = "select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong from geoPointTableLWD1MGS where " +
+//                "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
+//                + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
         //输出测试
         //for(long[] g:geoHashLongQueryResults){
         //System.out.println(g[0]+"#"+g[1]);
@@ -665,7 +667,7 @@ public class PhoenixSQLOperation {
                 long[] gMinMax = geoHashLongQueryResults.get(i);
                 //sqlWhereConstraint += " geoHashValueLong between "+gMinMax[0]+" and "+gMinMax[1]+" or ";
                 sqlGeoHashQueryUnionAllBetweenAnd += "Select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong " +
-                        "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+" UNION ALL ";
+                        "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+" and "+strDirectJudge+" UNION ALL ";
             }
         }
         //最后一个geoHash段
@@ -674,7 +676,7 @@ public class PhoenixSQLOperation {
         //sqlWhereConstraint +="geoHashValueLong between "+gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
 
         sqlGeoHashQueryUnionAllBetweenAnd += "Select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong " +
-                "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];//+" UNION ALL "+sqlDirectJudgeQuery;
+                "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strDirectJudge;
         //RectangleQuery4:geoHash段+直接判断的SQL语句字符串
 //        String sqlGeoHashDirectJudgeQuery = "Select * from geoPointTableLWD1MGP where ("+sqlWhereConstraint+" ) and "
 //                + "xLongitude>="+xLongitudeBLQS+" and "+"xLongitude <= "+xLongitudeTRQS+ " and "
@@ -754,6 +756,73 @@ public class PhoenixSQLOperation {
             //stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
 //            stmtUDF.execute(sqlCreateRectangleQueryUDFFunction);
             rs = stmt.executeQuery(sqlGeoHashUDFQuery);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            while(rs.next()){
+                int geoID = rs.getInt("geoID");
+                String geoName = rs.getString("geoName");
+                double xLongitude = rs.getDouble("xLongitude");
+                double yLatitude = rs.getDouble("yLatitude");
+                String geoHashValue = rs.getString("geoHashValue");
+                long geoHashValueLong = rs.getLong("geoHashValueLong");
+                GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+                geoPointTableRecords.add(g);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return geoPointTableRecords;
+    }
+    /**
+     * 函数功能：Query3.3 GeoHash+UDF函数
+     * @param rQS 矩形查询范围对象
+     * @param searchDepthManual geoHash搜索深度，需要手动设置，以后可能会修改
+     * @return 矩形查询后的记录
+     */
+    public static ArrayList<GeoPointTableRecord> selectAndQueryRecordsWithGeoHashIndexAndUDFFunctionUnionAll(RectangleQueryScope rQS,int searchDepthManual){
+        ResultSet rs;//查询结果集
+        ArrayList<GeoPointTableRecord> geoPointTableRecords = new ArrayList<GeoPointTableRecord>();//保存查询结果记录的数组
+        //UDF函数操作
+        String sqlDropRectangleQueryUDFFunction = "DROP FUNCTION IF EXISTS RectangleQueryUDFFunction";//删除UDF函数的SQL语句
+        String sqlCreateRectangleQueryUDFFunction = "CREATE FUNCTION RectangleQueryUDFFunction(Double, Double, Varchar) " +
+                "returns Integer as 'cc.xidian.PhoenixOperation.UDFRectangleDemoLWD' " +
+                "using jar 'hdfs://cloudgis/apps/hbase/data/lib/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
+        String sqlUDFConstraint = rQS.xLongitudeBL+","+rQS.yLatitudeBL+","+rQS.xLongitudeTR+","+rQS.yLatitudeTR;
+        String strUDFFunction = "RectangleQueryUDFFunction(xLongitude,yLatitude,'"+sqlUDFConstraint+"')=1";
+
+        ArrayList<long[]> geoHashLongQueryResults =
+                GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(rQS,searchDepthManual);
+        //输出测试
+        //for(long[] g:geoHashLongQueryResults){
+        //System.out.println(g[0]+"#"+g[1]);
+        //}
+        //String sqlWhereConstraint = "";//SQL语句
+        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction = "";
+        int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
+        //输出测试
+        //System.out.println(gLength);//输出长度
+        //如果geoHash段个数大于1
+        if(gLength>1){
+            for(int i=0;i<gLength-1;i++){
+                long[] gMinMax = geoHashLongQueryResults.get(i);
+                sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong " +
+                        "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+                        +" and "+strUDFFunction+" UNION ALL ";
+            }
+        }
+        //最后一个geoHash段
+        long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength-1);
+        sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong " +
+                "from geoPointTableLWD1MGS where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strUDFFunction;
+        try {
+            //Statement stmtUDF = conn.createStatement();
+            //stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
+//            stmtUDF.execute(sqlCreateRectangleQueryUDFFunction);
+            rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
             //此处判断不能用rs.next()，否则最终得到的结果集会少一个
             if(rs.wasNull()){
                 System.out.println("未找到记录，查询出错！");
