@@ -26,7 +26,7 @@ public class GeoHashMainTest {
         //PhoenixSQLOperation.dropTableNamedGeoPointTable();//只执行一次
 
         //PhoenixSQLOperation.selectResultsToFile();//只执行一次
-       PhoenixSQLOperation.dropIndexOfName();//删除二级索引，该操作只执行一次
+       //PhoenixSQLOperation.dropIndexOfName();//删除二级索引，该操作只执行一次
 ////
 //       long startTimeSecondIndex = System.currentTimeMillis();
 //////        PhoenixSQLOperation.createSecondIndexForGeoNameOfTable();
@@ -50,6 +50,7 @@ public class GeoHashMainTest {
         RectangleQueryScope rQS41 = new RectangleQueryScope(48.23654,-19.28654,64.25987,13.25897);//横跨第四、一象限的矩形范围
         RectangleQueryScope rQS1234 = new RectangleQueryScope(-14.22314,-25.18972,29.55846,18.22579);//横跨第一二三四象限的矩形范围
         RectangleQueryScope rQS1234min = new RectangleQueryScope(-4.22314,-5.18972,5.55846,4.22579);//横跨第一二三四象限的矩形范围
+        RectangleQueryScope rQS1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
 ////        ArrayList<RectangleQueryScope> rQSs = new ArrayList<RectangleQueryScope>();
 ////        rQSs.add(rQS1);
 ////        rQSs.add(rQS2);
@@ -72,9 +73,9 @@ public class GeoHashMainTest {
 //        hashMap.put("rQS1234",rQS1234);
 //        //Map.Entry<String,RectangleQueryScope> r = hashMap.get()
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1234min;
+        r = rQS1234;
 //        for(Map.Entry<String,RectangleQueryScope> r:hashMap.entrySet()){
-            System.out.println("================================"+"rQS1234min"+"=====================================");
+            System.out.println("================================"+"rQS1234"+"=====================================");
             //int searchDepthManual = 1;//搜索深度
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //            long startTimeQueryWithoutIndex = System.currentTimeMillis();
@@ -108,7 +109,7 @@ public class GeoHashMainTest {
                 System.out.println("-----------------------------------------------------------------");
                 long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
                 ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
-                        PhoenixSQLOperation.selectAndQueryRecordsWithLongGeoHashIndexAndSecondFiltering(r, searchDepthManual);
+                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexUnionAllAndDirectJudge(r, searchDepthManual);
                 long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
                 ArrayList<long[]> gGeoHashLongs =
                         GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r, searchDepthManual);
