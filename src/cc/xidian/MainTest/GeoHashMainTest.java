@@ -39,18 +39,26 @@ public class GeoHashMainTest {
         //2、查询操作
 //        RectangleQueryScope rQS = new RectangleQueryScope();//构建进行查询范围对象
 //        rQS.RectangleQueryScopeDelta(-10.62569,15.50321,22,15);//查询范围初始化
-//        //不同矩形查询范围的设计
-        RectangleQueryScope rQS1 = new RectangleQueryScope(10.62569,15.50321,32.62569,30.50321);//第一象限中的矩形范围
-        RectangleQueryScope rQS2 = new RectangleQueryScope(-62.36512,1.25643,-49.25943,32.65124);//第二象限中的矩形范围
-        RectangleQueryScope rQS3 = new RectangleQueryScope(-21.62513,-41.58712,-9.25314,-19.25843);//第三象限中的矩形范围
-        RectangleQueryScope rQS4 = new RectangleQueryScope(29.25876,-52.36914,42.25843,-33.58243);//第四象限中的矩形范围
-        RectangleQueryScope rQS12 = new RectangleQueryScope(-16.28412,11.58943,9.25846,35.26849);//横跨第一、二象限的矩形范围
-        RectangleQueryScope rQS23 = new RectangleQueryScope(-34.25894,-28.33256,-8.25931,4.26985);//横跨第二、三象限的矩形范围
-        RectangleQueryScope rQS34 = new RectangleQueryScope(-15.28694,-52.36942,10.25897,-31.25896);//横跨第三、四象限的矩形范围
-        RectangleQueryScope rQS41 = new RectangleQueryScope(48.23654,-19.28654,64.25987,13.25897);//横跨第四、一象限的矩形范围
-        RectangleQueryScope rQS1234 = new RectangleQueryScope(-14.22314,-25.18972,29.55846,18.22579);//横跨第一二三四象限的矩形范围
-        RectangleQueryScope rQS1234min = new RectangleQueryScope(-4.22314,-5.18972,5.55846,4.22579);//横跨第一二三四象限的矩形范围
-        RectangleQueryScope rQS1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
+//        //不同矩形查询范围的设计，共19种查询范围
+        RectangleQueryScope rQS0_1 = new RectangleQueryScope(10.62569,15.50321,32.62569,30.50321);//第一象限中的矩形范围
+        RectangleQueryScope rQS1_1min = new RectangleQueryScope(10.62569,16.50321,13.62569,19.50321);//第一象限中的矩形范围
+        RectangleQueryScope rQS2_2 = new RectangleQueryScope(-62.36512,1.25643,-49.25943,32.65124);//第二象限中的矩形范围
+        RectangleQueryScope rQS3_2min = new RectangleQueryScope(-62.36512,1.25643,-54.25943,9.65124);//第二象限中的矩形范围
+        RectangleQueryScope rQS4_3 = new RectangleQueryScope(-21.62513,-41.58712,-9.25314,-19.25843);//第三象限中的矩形范围
+        RectangleQueryScope rQS5_3min = new RectangleQueryScope(-21.62513,-41.58712,-12.25314,-29.25843);//第三象限中的矩形范围
+        RectangleQueryScope rQS6_4 = new RectangleQueryScope(29.25876,-52.36914,42.25843,-33.58243);//第四象限中的矩形范围
+        RectangleQueryScope rQS7_4min = new RectangleQueryScope(29.25876,-52.36914,37.25843,-44.58243);//第四象限中的矩形范围
+        RectangleQueryScope rQS8_12 = new RectangleQueryScope(-16.28412,11.58943,9.25846,35.26849);//横跨第一、二象限的矩形范围
+        RectangleQueryScope rQS9_12min = new RectangleQueryScope(-6.28412,11.58943,9.25846,23.26849);//横跨第一、二象限的矩形范围
+        RectangleQueryScope rQS10_23 = new RectangleQueryScope(-34.25894,-28.33256,-8.25931,4.26985);//横跨第二、三象限的矩形范围
+        RectangleQueryScope rQS11_23min = new RectangleQueryScope(-34.25894,-8.33256,-25.25931,4.26985);//横跨第二、三象限的矩形范围
+        RectangleQueryScope rQS12_34 = new RectangleQueryScope(-15.28694,-52.36942,10.25897,-31.25896);//横跨第三、四象限的矩形范围
+        RectangleQueryScope rQS13_34min = new RectangleQueryScope(-5.28694,-52.36942,9.25897,-43.25896);//横跨第三、四象限的矩形范围
+        RectangleQueryScope rQS14_41 = new RectangleQueryScope(48.23654,-19.28654,64.25987,13.25897);//横跨第四、一象限的矩形范围
+        RectangleQueryScope rQS15_41min = new RectangleQueryScope(48.23654,-9.28654,57.25987,3.25897);//横跨第四、一象限的矩形范围
+        RectangleQueryScope rQS16_1234 = new RectangleQueryScope(-14.22314,-25.18972,29.55846,18.22579);//横跨第一二三四象限的矩形范围
+        RectangleQueryScope rQS17_1234min = new RectangleQueryScope(-4.22314,-5.18972,5.55846,4.22579);//横跨第一二三四象限的矩形范围
+        RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
 ////        ArrayList<RectangleQueryScope> rQSs = new ArrayList<RectangleQueryScope>();
 ////        rQSs.add(rQS1);
 ////        rQSs.add(rQS2);
@@ -73,9 +81,9 @@ public class GeoHashMainTest {
 //        hashMap.put("rQS1234",rQS1234);
 //        //Map.Entry<String,RectangleQueryScope> r = hashMap.get()
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS41;
+        r = rQS18_1234min2;
 //        for(Map.Entry<String,RectangleQueryScope> r:hashMap.entrySet()){
-            System.out.println("================================"+"rQS41"+"=====================================");
+            System.out.println("================================"+"rQS18_1234min2"+"=====================================");
             //int searchDepthManual = 1;//搜索深度
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //            long startTimeQueryWithoutIndex = System.currentTimeMillis();
@@ -149,18 +157,24 @@ public class GeoHashMainTest {
                         + gGeoHashLongs.size()+"#"+gPTRWithGeoHashAndSecondFiltering.size()
                         +"%"+gPTRWithGeoHashAndDirectJudge.size()+"%"+gPTRWithGeoHashAndUDFFunction.size());
                 //相关结果写入文件操作，便于MatLab画图
-                String strSDTGeoHashAndSecondFiltering = searchDepthManual
-                        +","+((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0)+"\n";
-                File fileSDTGeoHashAndSecondFiltering = new File("rQS41SDTGeoHashAndSecondFiltering.txt");
-                FileUtil.writeToFile(fileSDTGeoHashAndSecondFiltering,strSDTGeoHashAndSecondFiltering);
-                String strSDTGeoHashAndDirectJudge = searchDepthManual
-                        +","+((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0)+"\n";
-                File fileSDTGeoHashAndDirectJudge = new File("rQS41SDTGeoHashAndDirectJudge.txt");
-                FileUtil.writeToFile(fileSDTGeoHashAndDirectJudge,strSDTGeoHashAndDirectJudge);
-                String strSDTGeoHashAndUDFFunction = searchDepthManual
-                        +","+((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
-                File fileSDTGeoHashAndUDFFunction = new File("rQS41SDTGeoHashAndUDFFunction.txt");
-                FileUtil.writeToFile(fileSDTGeoHashAndUDFFunction,strSDTGeoHashAndUDFFunction);
+//                String strSDTGeoHashAndSecondFiltering = searchDepthManual
+//                        +","+((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0)+"\n";
+//                File fileSDTGeoHashAndSecondFiltering = new File("rQS41minSDTGeoHashAndSecondFiltering.txt");
+//                FileUtil.writeToFile(fileSDTGeoHashAndSecondFiltering,strSDTGeoHashAndSecondFiltering);
+//                String strSDTGeoHashAndDirectJudge = searchDepthManual
+//                        +","+((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0)+"\n";
+//                File fileSDTGeoHashAndDirectJudge = new File("rQS41minSDTGeoHashAndDirectJudge.txt");
+//                FileUtil.writeToFile(fileSDTGeoHashAndDirectJudge,strSDTGeoHashAndDirectJudge);
+//                String strSDTGeoHashAndUDFFunction = searchDepthManual
+//                        +","+((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
+//                File fileSDTGeoHashAndUDFFunction = new File("rQS41minSDTGeoHashAndUDFFunction.txt");
+//                FileUtil.writeToFile(fileSDTGeoHashAndUDFFunction,strSDTGeoHashAndUDFFunction);
+                String strSDTGeoHashThreeAll = searchDepthManual +" "
+                        +((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0+" ")
+                        +((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0+" ")
+                        +((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
+                File fileSDTGeoHashThreeAll = new File("rQS18_1234min2SDTGeoHashSDU.txt");
+                FileUtil.writeToFile(fileSDTGeoHashThreeAll,strSDTGeoHashThreeAll);
            }
         //}
 
