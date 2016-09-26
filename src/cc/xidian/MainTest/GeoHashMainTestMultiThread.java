@@ -45,8 +45,8 @@ public class GeoHashMainTestMultiThread implements Runnable{
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1_1min;
-        System.out.println("================================"+"rQS1_1min"+"=====================================");
+        r = rQS16_1234;
+        System.out.println("================================"+"rQS16_1234"+"=====================================");
 //        long startTimeQueryWithDirectJudge = System.currentTimeMillis();
 //        ArrayList<GeoPointTableRecord> gPTRWithDirectJudge = PhoenixSQLOperation.selectAndQueryRecordsWithDirectJudge(r);
 //        long endTimeQueryWithDirectJudge = System.currentTimeMillis();
@@ -100,7 +100,7 @@ public class GeoHashMainTestMultiThread implements Runnable{
     }
 
     public static void main(String[] args){
-        int sizeThread = 50;
+        int sizeThread = 5;
         System.out.println("===============sizeThread: "+sizeThread+"================");
         for(int i=0;i<sizeThread;i++){
             GeoHashMainTestMultiThread tt = new GeoHashMainTestMultiThread("Thread-"+i);
