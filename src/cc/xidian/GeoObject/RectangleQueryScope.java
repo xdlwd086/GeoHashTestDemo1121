@@ -53,7 +53,7 @@ public class RectangleQueryScope {
     }
     public boolean isContainRectangleQueryScope(RectangleQueryScope rQS){
         return (this.xLongitudeBL<=rQS.xLongitudeBL&&this.xLongitudeTR>=rQS.xLongitudeTR&&
-                rQS.yLatitudeBL<=rQS.yLatitudeBL&&rQS.yLatitudeTR>=rQS.yLatitudeTR);
+                this.yLatitudeBL<=rQS.yLatitudeBL&&this.yLatitudeTR>=rQS.yLatitudeTR);
     }
     public boolean isIntersectWithRectangleQueryScope(RectangleQueryScope rQS){
         return !(this.xLongitudeBL>=rQS.xLongitudeTR||this.xLongitudeTR<=rQS.xLongitudeBL

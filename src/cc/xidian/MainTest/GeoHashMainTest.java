@@ -13,6 +13,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * Created by hadoop on 2016/9/8.
@@ -23,10 +24,10 @@ public class GeoHashMainTest {
 
         //1、通过Phoenix在HBase上的操作
         //1.1 创建表并插入数据操作，该操作只执行一次
-        long startTimeCreateAndInsertRecords = System.currentTimeMillis();
-        PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//只执行一次
-        long endTimeCreateAndInsertRecords = System.currentTimeMillis();
-        System.out.println("CreateAndInsertRecords-Time: "+(endTimeCreateAndInsertRecords - startTimeCreateAndInsertRecords));
+//        long startTimeCreateAndInsertRecords = System.currentTimeMillis();
+//        PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//只执行一次
+//        long endTimeCreateAndInsertRecords = System.currentTimeMillis();
+//        System.out.println("CreateAndInsertRecords-Time: "+(endTimeCreateAndInsertRecords - startTimeCreateAndInsertRecords));
         //1.2 删除表操作，该操作只执行一次
         //PhoenixSQLOperation.dropTableNamedGeoPointTable();//只执行一次
         //1.3 查询并写入文件操作，该操作只执行一次，目的是获取表中部分数据并进行查看
@@ -38,7 +39,7 @@ public class GeoHashMainTest {
 //        //PhoenixSQLOperation.createSecondIndexForGeoNameOfTable();
 //        //PhoenixSQLOperation.createSecondIndexForGeoPointTableLWD1MLong();
 //        //PhoenixSQLOperation.createSecondIndexForGeoHashValueBase32OfTable();
-//        PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable();
+//        PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable10M();
 //        long endTimeSecondIndex = System.currentTimeMillis();
 //        System.out.println("CreateSecondIndex-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
 
@@ -65,9 +66,9 @@ public class GeoHashMainTest {
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1_1min;
+        r = rQS0_1;
         //for(int j=0;j<20;j++) {
-            System.out.println("================================" + "rQS1_1min" + "=====================================");
+            System.out.println("================================" + "rQS0_1" + "=====================================");
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //        long startTimeQueryWithoutIndex = System.currentTimeMillis();
 //        ArrayList<GeoPointTableRecord> geoPointTableRecordsWithoutIndex
@@ -111,7 +112,7 @@ public class GeoHashMainTest {
 ////                    + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0);
 ////            System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
 ////                    + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size());
-//                //2.4.1 SQL-GeoHash的BetweenAnd的UnionAll+本地内存二次过滤
+                //2.4.1 SQL-GeoHash的BetweenAnd的UnionAll+本地内存二次过滤
 //                long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
 //                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
 //                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndSecondFilteringUnionAll(r, searchDepthManual);
@@ -138,15 +139,15 @@ public class GeoHashMainTest {
 //                System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
 //                        + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size()
 //                        + "%" + gPTRWithGeoHashAndDirectJudge.size() + "%" + gPTRWithGeoHashAndUDFFunction.size());
-//                //相关结果写入文件操作，便于MatLab画图
+////                //相关结果写入文件操作，便于MatLab画图
 //                String strSDTGeoHashThreeAll = searchDepthManual + " "
 //                        + ((endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0 + " ")
 //                        + ((endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0 + " ")
 //                        + ((endTimeQueryWithGeoHashAndUDFFunction - startTimeQueryWithGeoHashAndUDFFunction) / 1000.0) + "\n";
-//                File fileSDTGeoHashThreeAll = new File("rQS1_1minSDTGeoHashSDU20Sum.txt");
+//                File fileSDTGeoHashThreeAll = new File("rQS5_3minSDTGeoHashSDU20SumMerge.txt");
 //                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
 //            }
-//        }
+      //}
 
         //GeoHash编码转换正确，测试完成
 //        long geoHashZY = GeoHashConversion.LongLatToHash(-50.0,35.0);
@@ -202,7 +203,28 @@ public class GeoHashMainTest {
 //     System.out.println(xyBL[0]+","+xyBL[1]);
 
         //GeoHash叶节点合并测试
-
+        for(int searchManualTestMerge=10;searchManualTestMerge<=20;searchManualTestMerge++){
+            System.out.println("================="+"SearchDepthManual: "+searchManualTestMerge+"===============");
+            long startTimeGeoHashLongs = System.currentTimeMillis();
+            Stack<long[]> gGeoHashLongsMerge =
+                    GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMerge(r, searchManualTestMerge);
+            long endTimeGeoHashLongs = System.currentTimeMillis();
+            long startTimeGeoHashLongsMerge = System.currentTimeMillis();
+            Stack<long[]> gGeoHashLongsMergeTest =
+                    GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMergeTest(r,searchManualTestMerge);
+            long endTimeGeoHashLongsMerge = System.currentTimeMillis();
+            System.out.println("GetGeoHashLongsAndMerge-Time: "+(endTimeGeoHashLongs-startTimeGeoHashLongs)
+                    +"#"+(endTimeGeoHashLongsMerge-startTimeGeoHashLongsMerge));
+            System.out.println("GetGeoHashLongsAndMerge-Size: "+gGeoHashLongsMerge.size() +"#"+gGeoHashLongsMergeTest.size());
+//            for(long[] g:gGeoHashLongsMerge){
+//                System.out.println(g[0]+"#"+g[1]);
+//            }
+//            System.out.println("------------------------------------------");
+//            for(long[] gm:gGeoHashLongsMergeTest){
+//                System.out.println(gm[0]+"#"+gm[1]);
+//            }
+//
+        }
         PhoenixSQLOperation.closeConnectionWithHBase();
 
 

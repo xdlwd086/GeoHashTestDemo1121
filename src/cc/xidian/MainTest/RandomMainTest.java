@@ -51,8 +51,8 @@ public class RandomMainTest {
 
         //BitSet测试
 
-        File fileSDTGeoHashSDUMT = new File("rQS1_1minSDTGeoHashSDU20Sum.txt");
-        File fileSDTGeoHashSDTMTAverage = new File("rQS1_1minSDTGeoHashSDU20Average.txt");
+        File fileSDTGeoHashSDUMT = new File("rQS5_3minSDTGeoHashSDU20SumMerge.txt");
+        File fileSDTGeoHashSDTMTAverage = new File("rQS5_3minSDTGeoHashSDU20AverageMerge.txt");
         FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
     }
 }
