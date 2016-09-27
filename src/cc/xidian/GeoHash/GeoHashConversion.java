@@ -13,8 +13,8 @@ import java.util.Stack;
  */
 public class GeoHashConversion {
     //共进行numBits*2次划分，geoHash的base32编码是numBits*2/5位，划分的格子数为（2的numBits次方*2的numBits次方）
-    private static final int numBits = 6 * 5;
-    private static final int SEARCH_DEPTH = 6*5;
+    public static final int numBits = 6 * 5;
+    public static final int SEARCH_DEPTH = 20;
     public static final int MAX_HASH_LENGTH = 12;
     private static final String BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
     public static final String BINARY_ZERO60 = "000000000000000000000000000000000000000000000000000000000000";//60个0的字符串
@@ -426,20 +426,6 @@ public class GeoHashConversion {
      * @return 查询结果的许多GeoHash范围值，long类型
      */
     public static ArrayList<long[]> rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(RectangleQueryScope rQS,int searchDepthManual){
-        //搜索深度的判断
-//        int searchDepth = SEARCH_DEPTH;
-//        double rectangleMinWidth = (rQS.deltaX>=rQS.deltaY?rQS.deltaY:rQS.deltaX);
-//        if(rectangleMinWidth<2){
-//            searchDepth = SEARCH_DEPTH;
-//        }else if(rectangleMinWidth<4){
-//            searchDepth = 25;
-//        }else if(rectangleMinWidth<8){
-//            searchDepth = 20;
-//        }else if(rectangleMinWidth<16){
-//            searchDepth = 15;
-//        }else{
-//            searchDepth = 10;
-//        }
 
         ArrayList<long[]> resultSet = new ArrayList<long[]>();
         RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
@@ -478,81 +464,137 @@ public class GeoHashConversion {
         }
         return resultSet;
     }
+    /**
+     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并经测试，该算法正确，该算法由张洋提供
+     * @param rQS 矩形查询范围
+     * @param searchDepthManual 手动设置搜索深度（暂定）
+     * @return 查询结果的许多GeoHash范围值，long类型
+     */
+    public static ArrayList<long[]> rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMerge(RectangleQueryScope rQS,int searchDepthManual){
+        ArrayList<long[]> resultSet = new ArrayList<long[]>();
+        long geoHashValueLongMinTemp = 0L;
+        long geoHashValueLongMaxTemp = 0L;
+        RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
+        Stack<RectanglePrefix> rPStack = new Stack<RectanglePrefix>();//使用栈进行递归操作
+        rPStack.push(rectanglePrefix);//压栈
+        //递归遍历二叉树操作
+        while(!rPStack.empty()){
+            RectanglePrefix rPNow = rPStack.pop();//从栈中弹出当前的矩形前缀码
+            RectangleQueryScope rQSNow = getRectangleQueryScopeFromPrefix(rPNow);//根据前缀码计算出矩形范围
+            //若查询范围包含当前矩形范围，则停止搜索，并将当前前缀码范围添加到最终结果集中
+            if(rQS.isContainRectangleQueryScope(rQSNow)){
+                long[] geoHashValueMinMax = new long[2];
+                geoHashValueMinMax[0] = rPNow.prefix;
+                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rPNow.length)+rPNow.prefix;
+                //GeoHash段合并部分
+                if(geoHashValueLongMinTemp-1 != geoHashValueMinMax[1]){
+                    resultSet.add(geoHashValueMinMax);
+                }else{
+                    geoHashValueMinMax[1] = geoHashValueLongMaxTemp;
+                }
+            }
+            //若搜索深度没有达到最大深度，继续搜索
+            else if(rPNow.length<searchDepthManual){
+                RectanglePrefix attachOne = rPNow.attachOne();//补1操作
+                RectanglePrefix attachZero = rPNow.attachZero();//补0操作
+                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
+                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
+                //若矩形范围相交，则将前缀码压栈
+                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+                    rPStack.push(attachZero);
+                }
+                if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
+                    rPStack.push(attachOne);
+                }
+            }else{
+                long[] geoHashValueMinMax = new long[2];
+                geoHashValueMinMax[0] = rPNow.prefix;
+                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rPNow.length)+rPNow.prefix;
+                //GeoHash段合并部分
+                if(geoHashValueLongMinTemp-1 != geoHashValueMinMax[1]){
+                    resultSet.add(geoHashValueMinMax);
+                }else{
+                    geoHashValueMinMax[1] = geoHashValueLongMaxTemp;
+                }
+                //resultSet.add(geoHashValueMinMax);
+            }
+        }
+        return resultSet;
+    }
 
 
 
-
-    //以下为60位二进制位的GeoHash编码方式测试，时间：2016年9月21日22:49:42，代码修改人：刘文东
+    //以下为60位二进制位的GeoHash编码方式测试，时间：2016年9月21日22:49:42，代码修改人：刘文东，以下代码为无效代码，放弃了这种方案（时间：2016年9月26日23:31:43）
     /**
      * 函数功能：从矩形查询范围得到矩形前缀码,前缀码为60位的二进制字符串，刘文东修订，经测试，转码正确，改造时间：2016年9月22日12:15:56
      * @param rQS 矩形查询范围
      * @return 矩形前缀码
      */
-    public static RectangleStrBinaryPrefix getStrBinaryRectanglePrefixFromRectangleQueryScope(RectangleQueryScope rQS){
-        String strBinaryGeoHashValueBL = encodeGeoHashFromLonAndLatBinaryString(rQS.xLongitudeBL,rQS.yLatitudeBL);
-        String strBinaryGeoHashValueTR = encodeGeoHashFromLonAndLatBinaryString(rQS.xLongitudeTR,rQS.yLatitudeTR);
-        long geoHashValueBL = Long.parseLong(strBinaryGeoHashValueBL,2);
-        long geoHashValueTR = Long.parseLong(strBinaryGeoHashValueTR,2);
-        long rectanglePrefixXor = (geoHashValueBL ^ geoHashValueTR);//两个值异或，60位，经测试，两个long类型的数异或后的值正确
-        String strBinaryRectanglePrefixXor = Long.toBinaryString(rectanglePrefixXor);
-        int prefixLength = strBinaryGeoHashValueBL.length() - strBinaryRectanglePrefixXor.length();//前缀码的长度
-        String strBinaryPrefix = strBinaryGeoHashValueBL.substring(0,prefixLength);
-        return (new RectangleStrBinaryPrefix(strBinaryPrefix,prefixLength));
-    }
+//    public static RectangleStrBinaryPrefix getStrBinaryRectanglePrefixFromRectangleQueryScope(RectangleQueryScope rQS){
+//        String strBinaryGeoHashValueBL = encodeGeoHashFromLonAndLatBinaryString(rQS.xLongitudeBL,rQS.yLatitudeBL);
+//        String strBinaryGeoHashValueTR = encodeGeoHashFromLonAndLatBinaryString(rQS.xLongitudeTR,rQS.yLatitudeTR);
+//        long geoHashValueBL = Long.parseLong(strBinaryGeoHashValueBL,2);
+//        long geoHashValueTR = Long.parseLong(strBinaryGeoHashValueTR,2);
+//        long rectanglePrefixXor = (geoHashValueBL ^ geoHashValueTR);//两个值异或，60位，经测试，两个long类型的数异或后的值正确
+//        String strBinaryRectanglePrefixXor = Long.toBinaryString(rectanglePrefixXor);
+//        int prefixLength = strBinaryGeoHashValueBL.length() - strBinaryRectanglePrefixXor.length();//前缀码的长度
+//        String strBinaryPrefix = strBinaryGeoHashValueBL.substring(0,prefixLength);
+//        return (new RectangleStrBinaryPrefix(strBinaryPrefix,prefixLength));
+//    }
     /**
      * 函数功能：从前缀码中得到矩形范围,经测试，转码正确，刘文东修订，测试时间：2016-9-22 15:24:33
      * @param rSBP 矩形前缀码
      * @return 矩形查询范围
      */
-    public static RectangleQueryScope getRectangleQueryScopeFromStrBinaryPrefix(RectangleStrBinaryPrefix rSBP){
-        String strBinaryGeoHashBL = rSBP.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBP.length));
-        String strBinaryGeoHashTR = rSBP.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBP.length));
-        double[] longLatBL = decodeLonAndLatFromGeoHashBinaryString(strBinaryGeoHashBL);//根据最小前缀获取左下角点的经纬度坐标
-        double[] longLatTR = decodeLonAndLatFromGeoHashBinaryString(strBinaryGeoHashTR);//根据最大前缀获得右上角点的经纬度坐标
-        return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
-    }
+//    public static RectangleQueryScope getRectangleQueryScopeFromStrBinaryPrefix(RectangleStrBinaryPrefix rSBP){
+//        String strBinaryGeoHashBL = rSBP.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBP.length));
+//        String strBinaryGeoHashTR = rSBP.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBP.length));
+//        double[] longLatBL = decodeLonAndLatFromGeoHashBinaryString(strBinaryGeoHashBL);//根据最小前缀获取左下角点的经纬度坐标
+//        double[] longLatTR = decodeLonAndLatFromGeoHashBinaryString(strBinaryGeoHashTR);//根据最大前缀获得右上角点的经纬度坐标
+//        return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
+//    }
     /**
      * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，前缀码为60位的二进制形式，经测试，转码正确，刘文东修订，时间：2016年9月22日17:49:57
      * @param rQS 矩形查询范围
      * @param searchDepthManual 手动设置搜索深度（暂定）
      * @return 查询结果的许多GeoHash范围值，long类型
      */
-    public static ArrayList<String[]> rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore60(RectangleQueryScope rQS,int searchDepthManual){
-        ArrayList<String[]> resultSet = new ArrayList<String[]>();
-        RectangleStrBinaryPrefix rSBP = getStrBinaryRectanglePrefixFromRectangleQueryScope(rQS);
-        Stack<RectangleStrBinaryPrefix> rSBPStack = new Stack<RectangleStrBinaryPrefix>();
-        rSBPStack.push(rSBP);
-        //递归遍历二叉树操作
-        while(!rSBPStack.empty()){
-            RectangleStrBinaryPrefix rSBPNow = rSBPStack.pop();//从栈中弹出当前的矩形前缀码
-            RectangleQueryScope rQSNow = getRectangleQueryScopeFromStrBinaryPrefix(rSBPNow);//根据前缀码计算出矩形范围
-            //若查询范围包含当前矩形范围，则停止搜索，并将当前前缀码范围添加到最终结果集中
-            if(rQS.isContainRectangleQueryScope(rQSNow)){
-                String[] geoHashValueMinMax = new String[2];
-                geoHashValueMinMax[0] = rSBPNow.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBPNow.length));
-                geoHashValueMinMax[1] = rSBPNow.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBPNow.length));
-                resultSet.add(geoHashValueMinMax);
-            }
-            //若搜索深度没有达到最大深度，继续搜索
-            else if(rSBPNow.length<searchDepthManual){
-                RectangleStrBinaryPrefix attachOne = rSBPNow.attachOne();//补1操作
-                RectangleStrBinaryPrefix attachZero = rSBPNow.attachZero();//补0操作
-                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromStrBinaryPrefix(attachOne);
-                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromStrBinaryPrefix(attachZero);
-                //若矩形范围相交，则将前缀码压栈
-                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
-                    rSBPStack.push(attachZero);
-                }
-                if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
-                    rSBPStack.push(attachOne);
-                }
-            }else{
-                String[] geoHashValueMinMax = new String[2];
-                geoHashValueMinMax[0] = rSBPNow.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBPNow.length));
-                geoHashValueMinMax[1] = rSBPNow.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBPNow.length));
-                resultSet.add(geoHashValueMinMax);
-            }
-        }
-        return resultSet;
-    }
+//    public static ArrayList<String[]> rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore60(RectangleQueryScope rQS,int searchDepthManual){
+//        ArrayList<String[]> resultSet = new ArrayList<String[]>();
+//        RectangleStrBinaryPrefix rSBP = getStrBinaryRectanglePrefixFromRectangleQueryScope(rQS);
+//        Stack<RectangleStrBinaryPrefix> rSBPStack = new Stack<RectangleStrBinaryPrefix>();
+//        rSBPStack.push(rSBP);
+//        //递归遍历二叉树操作
+//        while(!rSBPStack.empty()){
+//            RectangleStrBinaryPrefix rSBPNow = rSBPStack.pop();//从栈中弹出当前的矩形前缀码
+//            RectangleQueryScope rQSNow = getRectangleQueryScopeFromStrBinaryPrefix(rSBPNow);//根据前缀码计算出矩形范围
+//            //若查询范围包含当前矩形范围，则停止搜索，并将当前前缀码范围添加到最终结果集中
+//            if(rQS.isContainRectangleQueryScope(rQSNow)){
+//                String[] geoHashValueMinMax = new String[2];
+//                geoHashValueMinMax[0] = rSBPNow.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBPNow.length));
+//                geoHashValueMinMax[1] = rSBPNow.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBPNow.length));
+//                resultSet.add(geoHashValueMinMax);
+//            }
+//            //若搜索深度没有达到最大深度，继续搜索
+//            else if(rSBPNow.length<searchDepthManual){
+//                RectangleStrBinaryPrefix attachOne = rSBPNow.attachOne();//补1操作
+//                RectangleStrBinaryPrefix attachZero = rSBPNow.attachZero();//补0操作
+//                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromStrBinaryPrefix(attachOne);
+//                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromStrBinaryPrefix(attachZero);
+//                //若矩形范围相交，则将前缀码压栈
+//                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+//                    rSBPStack.push(attachZero);
+//                }
+//                if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
+//                    rSBPStack.push(attachOne);
+//                }
+//            }else{
+//                String[] geoHashValueMinMax = new String[2];
+//                geoHashValueMinMax[0] = rSBPNow.strBinaryPrefix+BINARY_ZERO60.substring(0,(numBits*2-rSBPNow.length));
+//                geoHashValueMinMax[1] = rSBPNow.strBinaryPrefix+BINARY_ONE60.substring(0,(numBits*2-rSBPNow.length));
+//                resultSet.add(geoHashValueMinMax);
+//            }
+//        }
+//        return resultSet;
+//    }
 }

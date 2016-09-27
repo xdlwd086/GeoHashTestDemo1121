@@ -2,6 +2,7 @@ package cc.xidian.PhoenixOperation;
 
 import cc.xidian.GeoHash.GeoHashConversion;
 import cc.xidian.GeoObject.GeoPointTableRecord;
+import cc.xidian.GeoObject.GeoPointTableRecordSimple;
 import cc.xidian.GeoObject.RectangleQueryScope;
 import cc.xidian.geoUtil.FileUtil;
 import cc.xidian.geoUtil.RandomOperation;
@@ -48,39 +49,42 @@ public class PhoenixSQLOperation {
         System.out.println("GeoPointTableLWD-InsertRecord-Time: "+(endTimeInsertRecord - startTimeCreateTable));
         System.out.println("GeoPointTableLWD-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
     }
-    public static void createAndInsertRecordToTableNamedGeoPointTableString(){
+
+    /**
+     * 函数功能：创建数据记录为1000万的表并随机插入数据
+     */
+    public static void createAndInsertRecordToTableNamedGeoPointTable10M(){
         //1、创建表操作
-        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTable1MGeoHashLong60("
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWD10M("
                 +"geoID    Integer not null Primary key,"
                 +"geoName    varchar(32),"
                 +"xLongitude    double,"
                 +"yLatitude    double,"
-                +"geoHashValue    varchar(32),"
                 +"geoHashValueLong    bigint "
                 +")";
         long startTimeCreateTable = System.currentTimeMillis();
         createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
         long endTimeCreateTable = System.currentTimeMillis();
         //2、插入数据操作
-        String sqlInsert = "upsert into GeoPointTable1MGeoHashLong60 values(?,?,?,?,?,?)";
+        String sqlInsert = "upsert into GeoPointTableLWD10M values(?,?,?,?,?)";
         long startTimeInsertRecord = System.currentTimeMillis();
         insertRecordToTableNamedGeoPointTable(sqlInsert);
         long endTimeInsertRecord  = System.currentTimeMillis();
         //3、查询操作
-        String sqlSelect = "select * from GeoPointTable1MGeoHashLong60 where geoID > 999000";
+        String sqlSelect = "select * from GeoPointTableLWD10M where geoID > 9999000";
         long startTimeSelectHaveResults = System.currentTimeMillis();
         selectHaveResults(sqlSelect);
         long endTimeSelectHaveResults = System.currentTimeMillis();
         //4、输出信息
-        System.out.println("GeoPointTableLWD-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
-        System.out.println("GeoPointTableLWD-InsertRecord-Time: "+(endTimeInsertRecord - startTimeCreateTable));
-        System.out.println("GeoPointTableLWD-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
+        System.out.println("GeoPointTableLWD10M-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
+        System.out.println("GeoPointTableLWD10M-InsertRecord-Time: "+(endTimeInsertRecord - startTimeCreateTable));
+        System.out.println("GeoPointTableLWD10M-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
     }
     /**
      * 删除表操作很少执行
      */
     public static void dropTableNamedGeoPointTable(){
-        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTable1MGeoHashString";
+        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWD";
         try {
             stmt.executeUpdate(sqlDropTableNamedGeoPointTable);
         } catch (SQLException e) {
@@ -148,8 +152,8 @@ public class PhoenixSQLOperation {
     public static void insertRecordToTableNamedGeoPointTable(String sqlInsertRecordToTableNamedGeoPointTable){
         try {
             PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
-            //每10万行记录作为一个插入单元，共插入100次，总共插入1亿条记录
-            for(int j=0;j<10;j++){
+            //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
+            for(int j=0;j<100;j++){
                 for(int i=0;i<100000;i++){
                     pst.setInt(1,(i+100000*j));
                     pst.setString(2, RandomOperation.RandomStringSimple(6));
@@ -157,11 +161,11 @@ public class PhoenixSQLOperation {
                     pst.setDouble(3,xLongitudeTemp );
                     double yLatitudeTemp = RandomOperation.RandomDouble(-90.0, 90.0);
                     pst.setDouble(4, yLatitudeTemp);
-                    String geoHashValueTemp = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeTemp, yLatitudeTemp);
-                    pst.setString(5, geoHashValueTemp);
-                    long geoHashValueLongTemp = GeoHashConversion.encodeGeoHashFromLonAndLatLong(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
+                    //String geoHashValueTemp = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeTemp, yLatitudeTemp);
+                    //pst.setString(5, geoHashValueTemp);
+                    long geoHashValueLongTemp = GeoHashConversion.LongLatToHash(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
                     //String strBinaryGeoHashTemp = GeoHashConversion.encodeGeoHashFromLonAndLatBinaryString(xLongitudeTemp,yLatitudeTemp);
-                    pst.setLong(6, geoHashValueLongTemp);
+                    pst.setLong(5, geoHashValueLongTemp);
                     pst.addBatch();
                 }
                 pst.executeBatch();
@@ -219,9 +223,10 @@ public class PhoenixSQLOperation {
                 String geoName = rs.getString("geoName");
                 double xLongitude = rs.getDouble("xLongitude");
                 double yLatitude = rs.getDouble("yLatitude");
-                String geoHashValue = rs.getString("geoHashValue");
+                //String geoHashValue = rs.getString("geoHashValue");
                 long geoHashValueLong = rs.getLong("geoHashValueLong");
-                GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+                //GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
                 System.out.println(g.toString());
             }
         } catch (SQLException e) {

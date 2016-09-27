@@ -45,8 +45,8 @@ public class GeoHashMainTestMultiThread implements Runnable{
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS16_1234;
-        System.out.println("================================"+"rQS16_1234"+"=====================================");
+        r = rQS5_3min;
+        System.out.println("================================"+"rQS5_3min"+"=====================================");
 //        long startTimeQueryWithDirectJudge = System.currentTimeMillis();
 //        ArrayList<GeoPointTableRecord> gPTRWithDirectJudge = PhoenixSQLOperation.selectAndQueryRecordsWithDirectJudge(r);
 //        long endTimeQueryWithDirectJudge = System.currentTimeMillis();
@@ -56,7 +56,7 @@ public class GeoHashMainTestMultiThread implements Runnable{
 //        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
         //2.4GeoHash查询，三种情况，改变搜索深度，进行查询
-        for(int searchDepthManual = 5;searchDepthManual<=10;searchDepthManual++) {
+        for(int searchDepthManual = 1;searchDepthManual<=20;searchDepthManual++) {
             //System.out.println("-----------------------------------------------------------------");
             //2.4.1 SQL-GeoHash的BetweenAnd的UnionAll+本地内存二次过滤
             long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
@@ -85,22 +85,28 @@ public class GeoHashMainTestMultiThread implements Runnable{
             System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
                     + gGeoHashLongs.size()+"#"+gPTRWithGeoHashAndSecondFiltering.size()
                     +"%"+gPTRWithGeoHashAndDirectJudge.size()+"%"+gPTRWithGeoHashAndUDFFunction.size());
-            //相关结果写入文件操作，便于MatLab画图
-//            String strSDTGeoHashThreeAll = searchDepthManual +" "
-//                    +((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0+" ")
-//                    +((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0+" ")
-//                    +((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
-//            File fileSDTGeoHashThreeAll = new File("rQS18_1234min2SDTGeoHashSDU.txt");
-//            FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
+//            //相关结果写入文件操作，便于MatLab画图
+            String strSDTGeoHashThreeAll = searchDepthManual +" "
+                    +((endTimeQueryWithGeoHashAndSecondFiltering-startTimeQueryWithGeoHashAndSecondFiltering)/1000.0+" ")
+                    +((endTimeQueryWithGeoHashAndDirectJudge-startTimeQueryWithGeoHashAndDirectJudge)/1000.0+" ")
+                    +((endTimeQueryWithGeoHashAndUDFFunction-startTimeQueryWithGeoHashAndUDFFunction)/1000.0)+"\n";
+            File fileSDTGeoHashThreeAll = new File("rQS5_3minSDTGeoHashSDUMT30.txt");
+            try{
+                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+//
             System.out.println("-----------------------------------------------------------------");
         }
+        //PhoenixSQLOperation.closeConnectionWithHBase();
     }
     public String toString(){
         return this.nameThread;
     }
 
     public static void main(String[] args){
-        int sizeThread = 5;
+        int sizeThread = 30;
         System.out.println("===============sizeThread: "+sizeThread+"================");
         for(int i=0;i<sizeThread;i++){
             GeoHashMainTestMultiThread tt = new GeoHashMainTestMultiThread("Thread-"+i);

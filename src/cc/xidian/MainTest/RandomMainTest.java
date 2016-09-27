@@ -2,8 +2,10 @@ package cc.xidian.MainTest;
 
 import cc.xidian.GeoHash.GeoHashConversion;
 import cc.xidian.GeoObject.CircleQueryScope;
+import cc.xidian.geoUtil.FileUtil;
 import cc.xidian.geoUtil.RandomOperation;
 
+import java.io.File;
 import java.util.BitSet;
 import java.util.Random;
 
@@ -11,7 +13,7 @@ import java.util.Random;
  * Created by hadoop on 2016/9/8.
  */
 public class RandomMainTest {
-    public static void main(String[] args){
+    public static void main(String[] args)throws Exception{
         //for(int i=0;i<1000;i++){
             //double temp = Math.round(Math.random()*360.0+(-180.0));
             //System.out.println(temp);
@@ -49,8 +51,8 @@ public class RandomMainTest {
 
         //BitSet测试
 
-        BitSet b = new BitSet(60);
-        b.set(0,55,false);
-        System.out.println(b.toString());
+        File fileSDTGeoHashSDUMT = new File("rQS1_1minSDTGeoHashSDU20Sum.txt");
+        File fileSDTGeoHashSDTMTAverage = new File("rQS1_1minSDTGeoHashSDU20Average.txt");
+        FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
     }
 }
