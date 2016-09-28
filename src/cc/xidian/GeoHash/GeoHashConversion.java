@@ -3,10 +3,7 @@ package cc.xidian.GeoHash;
 import cc.xidian.GeoObject.RectangleQueryScope;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Created by hadoop on 2016/5/20.
@@ -15,6 +12,7 @@ public class GeoHashConversion {
     //共进行numBits*2次划分，geoHash的base32编码是numBits*2/5位，划分的格子数为（2的numBits次方*2的numBits次方）
     public static final int numBits = 6 * 5;
     public static final int SEARCH_DEPTH = 20;
+    public static final int SEARCH_DEPTH_MAX = 60;
     public static final int MAX_HASH_LENGTH = 12;
     private static final String BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
     public static final String BINARY_ZERO60 = "000000000000000000000000000000000000000000000000000000000000";//60个0的字符串
@@ -380,6 +378,18 @@ public class GeoHashConversion {
         double[] longLatTR = HashToLongLat(maxGeoHashValueLong);//根据最大前缀获得右上角点的经纬度坐标
         return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
     }
+    /**
+     * 函数功能：从前缀码中得到矩形范围，经测试，转码争取，该函数由张洋提供
+     * @param rP 矩形前缀码，该前缀码为64位的long类型
+     * @return 矩形查询范围
+     */
+    public static double getRectangleQueryScopeAreaFromPrefix(RectanglePrefix rP){
+        double[] longLatBL = HashToLongLat(rP.prefix);//根据最小前缀获取左下角点的经纬度坐标值
+        long maxGeoHashValueLong = (0xffffffffffffffffL >>> rP.length)+ rP.prefix;//根据最小前缀获得最大前缀
+        double[] longLatTR = HashToLongLat(maxGeoHashValueLong);//根据最大前缀获得右上角点的经纬度坐标
+        return Math.abs(longLatTR[0] - longLatBL[0])*Math.abs(longLatTR[1] - longLatBL[1]);
+        //return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
+    }
 
     /**
      * 函数功能：从矩形查询范围得到矩形前缀码，前缀码为64位的long类型
@@ -467,6 +477,7 @@ public class GeoHashConversion {
             RectanglePrefix rPNow = rPStack.pop();//从栈中弹出当前的矩形前缀码
             RectangleQueryScope rQSNow = getRectangleQueryScopeFromPrefix(rPNow);//根据前缀码计算出矩形范围
             //若查询范围包含当前矩形范围，则停止搜索，并将当前前缀码范围添加到最终结果集中
+            //此处处理的是包含的中间或叶子结点，此处为递归结束标志之二
             if(rQS.isContainRectangleQueryScope(rQSNow)){
                 //System.out.println("====================================");
                 long[] geoHashValueMinMax = new long[2];
@@ -487,6 +498,7 @@ public class GeoHashConversion {
                 }
             }
             //若搜索深度没有达到最大深度，继续搜索，此处搜索深度的处理是有问题的
+            //此处为递归结束标志之一
             //else if(rPNow.length<searchDepthManual){
             else if((rPNow.length-rectanglePrefix.length)<searchDepthManual){
                 RectanglePrefix attachOne = rPNow.attachOne();//补1操作
@@ -500,7 +512,9 @@ public class GeoHashConversion {
                 if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
                     rPStack.push(attachOne);
                 }
-            }else{
+            }
+            //此处处理的是相交的叶子结点
+            else{
                 long[] geoHashValueMinMax = new long[2];
                 geoHashValueMinMax[0] = rPNow.prefix;
                 geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rPNow.length)+rPNow.prefix;
@@ -523,84 +537,71 @@ public class GeoHashConversion {
         return resultSet;
     }
     /**
-     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并，该算法由张洋提供原始代码，邱峰提供参考，刘文东最终修订，经测试，该算法正确
-     * 修订时间：2016年9月27日16:39:43
+     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并，该算法由张洋提
+     * 算法再次修订：修正了一些错误，并将深度优先遍历方式改为广度优先遍历方式，递归结束标志改为面积比率，最后进行GeoHash段的合并
+     * 编码人：刘文东，由刘文东进行重新设计与修订
+     * 修订时间：2016年9月28日16:35:36
      * @param rQS 矩形查询范围
-     * @param searchDepthManual 手动设置搜索深度（暂定）
+     * @param areaRatio 面积比率，需要通过实验进行测试
      * @return 查询结果的许多GeoHash范围值，long类型
      */
-    public static Stack<long[]> rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMergeTest(RectangleQueryScope rQS,int searchDepthManual){
+    public static Stack<long[]> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(RectangleQueryScope rQS,double areaRatio){
         Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
+        double rQSArea = Math.abs(rQS.deltaX)*Math.abs(rQS.deltaY);//计算查询区域的面积
         RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
-        Stack<RectanglePrefix> rPStack = new Stack<RectanglePrefix>();//使用栈进行递归操作
-        rPStack.push(rectanglePrefix);//压栈
+        ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
+        rPQueue.push(rectanglePrefix);
         //递归遍历二叉树操作，深度优先遍历，DFS
-        while(!rPStack.empty()){
-            RectanglePrefix rPNow = rPStack.pop();//从栈中弹出当前的矩形前缀码
-            RectangleQueryScope rQSNow = getRectangleQueryScopeFromPrefix(rPNow);//根据前缀码计算出矩形范围
-            //若查询范围包含当前矩形范围，则停止搜索，并将当前前缀码范围添加到最终结果集中
-
-            if((rPNow.length-rectanglePrefix.length)<searchDepthManual){
-            //if(rPNow.length>=searchDepthManual){
+        while(!rPQueue.isEmpty()){
+            //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
+            if(rPQueue.getLast().length == rPQueue.getFirst().length){
+                //计算当前队列中所有同层前缀对应面积的总和
+                double rPQueueRectangleAreaSum = 0;
+                for(RectanglePrefix r:rPQueue){
+                    rPQueueRectangleAreaSum += getRectangleQueryScopeAreaFromPrefix(r);
+                }
+                //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值符合一定条件，则跳出循环，退出遍历
+                if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){
+                    break;
+                }
+            }
+            //BFS，广度优先遍历，使用队列来实现
+            RectanglePrefix rPNow = rPQueue.pollLast();
+            //递归结束标志二，一般不会触发该标志，递归遍历主要靠标志一引起
+            if(rPNow.length<(SEARCH_DEPTH_MAX + rectanglePrefix.length)){
                 RectanglePrefix attachOne = rPNow.attachOne();//补1操作
                 RectanglePrefix attachZero = rPNow.attachZero();//补0操作
                 RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
                 RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
                 //若矩形范围相交，则将前缀码压栈
                 if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
-                    rPStack.push(attachZero);
+                    rPQueue.push(attachZero);
                 }
                 if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
-                    rPStack.push(attachOne);
+                    rPQueue.push(attachOne);
                 }
             }
-            else {
-                long[] geoHashValueMinMax = new long[2];
-                geoHashValueMinMax[0] = rPNow.prefix;
-                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rPNow.length)+rPNow.prefix;
-                if(resultSet.empty()) {
-                    resultSet.push(geoHashValueMinMax);
+        }
+        //遍历队列中的前缀，获得对应的geoHash段，进行合并操作
+        for(RectanglePrefix rResult:rPQueue){
+            long[] geoHashValueMinMax = new long[2];
+            geoHashValueMinMax[0] = rResult.prefix;
+            geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rResult.length)+rResult.prefix;
+            if(resultSet.empty()) {
+                resultSet.push(geoHashValueMinMax);
+            }else{
+                long[] geoHashValueMinMaxPop = resultSet.pop();
+                //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
+                if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
+                        &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
+                    geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
                 }else{
-                    long[] geoHashValueMinMaxPop = resultSet.pop();
-                    //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
-                    if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
-                            &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
-                        geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
-                    }else{
-                        resultSet.push(geoHashValueMinMaxPop);
-                    }
-                    resultSet.push(geoHashValueMinMax);
+                    resultSet.push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
                 }
+                resultSet.push(geoHashValueMinMax);
             }
         }
         return resultSet;
-    }
-    public static Stack<long[]>  getGeoHashLongsMergedByGeoHashIndexRecurrenceAlgorithm(RectangleQueryScope rQS,int searchDepthManual){
-        Stack<long[]> resultSetOfGeoHashLongs = new Stack<long[]>();//使用栈结构保存获得GeoHash段，即结果集
-
-        RectanglePrefix rPBase = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询范围的基本前缀
-        RectangleQueryScope rQSBase = getRectangleQueryScopeFromPrefix(rPBase);//由基本前缀获取基本矩形范围
-
-        if(rQS.isIntersectWithRectangleQueryScope(rQSBase)){
-
-            RectanglePrefix attachZero = rPBase.attachZero();
-            RectanglePrefix attachOne = rPBase.attachOne();
-            RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
-            RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
-            //若矩形范围相交，则将前缀码压栈
-            if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
-//                RectanglePrefix attachZero = rPBase.attachZero();
-//                RectanglePrefix attachOne = rPBase.attachOne();
-//                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
-//                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
-                //rPStack.push(attachZero);
-            }
-            if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
-                //rPStack.push(attachOne);
-            }
-        }
-
-        return resultSetOfGeoHashLongs;
     }
 
 
