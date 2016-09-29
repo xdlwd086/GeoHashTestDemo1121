@@ -18,8 +18,8 @@ public class RandomOperation {
         return buf.toString();
     }
     public static double RandomDouble(double start,double end){
-        Random r = new Random();;
-        DecimalFormat df = new DecimalFormat("#.0000");
+        Random r = new Random();
+        DecimalFormat df = new DecimalFormat("#.00000");
         return Double.parseDouble(df.format(r.nextDouble()*(end - start)+start));
     }
 }

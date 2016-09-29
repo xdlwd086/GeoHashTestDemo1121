@@ -3,6 +3,7 @@ package cc.xidian.GeoHash;
 import cc.xidian.GeoObject.RectangleQueryScope;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -379,15 +380,18 @@ public class GeoHashConversion {
         return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
     }
     /**
-     * 函数功能：从前缀码中得到矩形范围，经测试，转码争取，该函数由张洋提供
+     * 函数功能：计算矩形框的面积，将矩形框的x增量和y增量分别取小数点后5位，然后乘以100000，变成整数，以提高乘法效率
      * @param rP 矩形前缀码，该前缀码为64位的long类型
-     * @return 矩形查询范围
+     * @return long类型的乘法结果
      */
-    public static double getRectangleQueryScopeAreaFromPrefix(RectanglePrefix rP){
+    public static long getRectangleQueryScopeAreaFromPrefix(RectanglePrefix rP){
         double[] longLatBL = HashToLongLat(rP.prefix);//根据最小前缀获取左下角点的经纬度坐标值
         long maxGeoHashValueLong = (0xffffffffffffffffL >>> rP.length)+ rP.prefix;//根据最小前缀获得最大前缀
         double[] longLatTR = HashToLongLat(maxGeoHashValueLong);//根据最大前缀获得右上角点的经纬度坐标
-        return Math.abs(longLatTR[0] - longLatBL[0])*Math.abs(longLatTR[1] - longLatBL[1]);
+        DecimalFormat df = new DecimalFormat("#.00000");
+        long deltaX = (long)(Double.parseDouble(df.format(Math.abs(longLatTR[0] - longLatBL[0])))*100000);
+        long deltaY = (long)(Double.parseDouble(df.format(Math.abs(longLatTR[1] - longLatBL[1])))*100000);
+        return deltaX*deltaY;
         //return new RectangleQueryScope(longLatBL[0],longLatBL[1],longLatTR[0],longLatTR[1]);//根据左下角点和右上角点的经纬度坐标构造矩形查询范围，并返回
     }
 
@@ -547,7 +551,11 @@ public class GeoHashConversion {
      */
     public static Stack<long[]> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(RectangleQueryScope rQS,double areaRatio){
         Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
-        double rQSArea = Math.abs(rQS.deltaX)*Math.abs(rQS.deltaY);//计算查询区域的面积
+        //double rQSArea = Math.abs(rQS.deltaX)*Math.abs(rQS.deltaY);//计算查询区域的面积
+        DecimalFormat df = new DecimalFormat("#.00000");
+        long deltaX = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaX)))*100000);
+        long deltaY = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaY)))*100000);
+        double rQSArea = deltaX*deltaY;
         RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
         ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
         rPQueue.push(rectanglePrefix);
@@ -556,7 +564,7 @@ public class GeoHashConversion {
             //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
             if(rPQueue.getLast().length == rPQueue.getFirst().length){
                 //计算当前队列中所有同层前缀对应面积的总和
-                double rPQueueRectangleAreaSum = 0;
+                long rPQueueRectangleAreaSum = 0;
                 for(RectanglePrefix r:rPQueue){
                     rPQueueRectangleAreaSum += getRectangleQueryScopeAreaFromPrefix(r);
                 }

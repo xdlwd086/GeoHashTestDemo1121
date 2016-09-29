@@ -67,9 +67,9 @@ public class GeoHashMainTest {
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS16_1234;
-        //for(int j=0;j<20;j++) {
-            System.out.println("================================" + "rQS16_1234" + "=====================================");
+        r = rQS12_34;
+        for(int j=0;j<30;j++) {
+            System.out.println("================================" + "rQS12_34" + "=====================================");
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //        long startTimeQueryWithoutIndex = System.currentTimeMillis();
 //        ArrayList<GeoPointTableRecord> geoPointTableRecordsWithoutIndex
@@ -98,8 +98,9 @@ public class GeoHashMainTest {
 //        System.out.println("RectangleRangeQueryWithIndex-SizeAndTime:"+gPTRWithUDFFunction.size()
 //               +"#"+(endTimeQueryWithUDFFunction - startTimeQueryWithUDFFunction)/1000.0);
             //2.4GeoHash查询，三种情况，改变搜索深度，进行查询
-
+            int count =0;
             for (double areaRatioTemp = 1.1; areaRatioTemp <= 4.0; areaRatioTemp+=0.1) {
+                count++;
                 DecimalFormat df = new DecimalFormat("#.0000");
                 double areaRatio = Double.parseDouble(df.format(areaRatioTemp));
                 System.out.println("-----------------------------------------------------------------");
@@ -139,7 +140,7 @@ public class GeoHashMainTest {
                         GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(r, areaRatio);
                 //相关结果输出
                 System.out.println("RectangleQueryScope: " + r.toString());
-                System.out.println("GeoHashIndexAlgorithm-AreaAndSearchTime: " + areaRatio
+                System.out.println("GeoHashIndexAlgorithm-AreaAndSearchTime: " + count
                         + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0
                         + "%" + (endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0
                         + "%" + (endTimeQueryWithGeoHashAndUDFFunction - startTimeQueryWithGeoHashAndUDFFunction) / 1000.0);
@@ -148,14 +149,14 @@ public class GeoHashMainTest {
                         + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size()
                         + "%" + gPTRWithGeoHashAndDirectJudge.size() + "%" + gPTRWithGeoHashAndUDFFunction.size());
 ////                //相关结果写入文件操作，便于MatLab画图
-//                String strSDTGeoHashThreeAll = searchDepthManual + " "
-//                        + ((endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0 + " ")
-//                        + ((endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0 + " ")
-//                        + ((endTimeQueryWithGeoHashAndUDFFunction - startTimeQueryWithGeoHashAndUDFFunction) / 1000.0) + "\n";
-//                File fileSDTGeoHashThreeAll = new File("rQS5_3minSDTGeoHashSDU20SumMerge.txt");
-//                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
+                String strSDTGeoHashThreeAll = count + " "
+                        + ((endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0 + " ")
+                        + ((endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0 + " ")
+                        + ((endTimeQueryWithGeoHashAndUDFFunction - startTimeQueryWithGeoHashAndUDFFunction) / 1000.0) + "\n";
+                File fileSDTGeoHashThreeAll = new File("rQS12_34SDTGeoHashSDU20SumMergeAreaRatio.txt");
+                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
             }
-      //}
+      }
 
         //GeoHash编码转换正确，测试完成
 //        long geoHashZY = GeoHashConversion.LongLatToHash(-50.0,35.0);
