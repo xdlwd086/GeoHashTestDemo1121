@@ -557,6 +557,7 @@ public class GeoHashConversion {
         long deltaY = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaY)))*100000);
         double rQSArea = deltaX*deltaY;
         RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
+        long rPArea = getRectangleQueryScopeAreaFromPrefix(rectanglePrefix);//
         ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
         rPQueue.push(rectanglePrefix);
         //递归遍历二叉树操作，深度优先遍历，DFS
@@ -564,9 +565,10 @@ public class GeoHashConversion {
             //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
             if(rPQueue.getLast().length == rPQueue.getFirst().length){
                 //计算当前队列中所有同层前缀对应面积的总和
+                long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);
                 long rPQueueRectangleAreaSum = 0;
-                for(RectanglePrefix r:rPQueue){
-                    rPQueueRectangleAreaSum += getRectangleQueryScopeAreaFromPrefix(r);
+                for(int i=0;i<rPQueue.size();i++){
+                    rPQueueRectangleAreaSum += rPQueueRectangleArea;
                 }
                 //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值符合一定条件，则跳出循环，退出遍历
                 if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){

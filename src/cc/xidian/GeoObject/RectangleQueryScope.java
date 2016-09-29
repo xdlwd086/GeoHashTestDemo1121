@@ -51,6 +51,9 @@ public class RectangleQueryScope {
     public boolean isContainGeoPointTableRecord(GeoPointTableRecord g){
         return (g.xLongitude>=this.xLongitudeBL&&g.xLongitude<=this.xLongitudeTR&&g.yLatitude>=yLatitudeBL&&g.yLatitude<=yLatitudeTR);
     }
+    public boolean isContainGeoPointTableRecord(GeoPointTableRecordSimple g){
+        return (g.xLongitude>=this.xLongitudeBL&&g.xLongitude<=this.xLongitudeTR&&g.yLatitude>=yLatitudeBL&&g.yLatitude<=yLatitudeTR);
+    }
     public boolean isContainRectangleQueryScope(RectangleQueryScope rQS){
         return (this.xLongitudeBL<=rQS.xLongitudeBL&&this.xLongitudeTR>=rQS.xLongitudeTR&&
                 this.yLatitudeBL<=rQS.yLatitudeBL&&this.yLatitudeTR>=rQS.yLatitudeTR);
