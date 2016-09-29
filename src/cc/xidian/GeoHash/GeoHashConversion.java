@@ -571,7 +571,11 @@ public class GeoHashConversion {
                     rPQueueRectangleAreaSum += rPQueueRectangleArea;
                 }
                 //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值符合一定条件，则跳出循环，退出遍历
-                if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){
+//                if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){
+//                    break;
+//                }
+                //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值小于1，则跳出循环，退出遍历
+                if(rPQueueRectangleAreaSum/rQSArea<=1){
                     break;
                 }
             }
