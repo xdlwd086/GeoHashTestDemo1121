@@ -1,6 +1,8 @@
 package cc.xidian.GeoHash;
 
+import cc.xidian.GeoObject.GeoHashIndexRecord;
 import cc.xidian.GeoObject.RectangleQueryScope;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -551,6 +553,8 @@ public class GeoHashConversion {
      */
     public static Stack<long[]> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(RectangleQueryScope rQS,double areaRatio){
         Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
+        ArrayList<RectanglePrefix[]> rPArrayArray = new ArrayList<RectanglePrefix[]>();
+        ArrayList<Stack<long[]>> resultSetArray = new ArrayList<Stack<long[]>>();
         //double rQSArea = Math.abs(rQS.deltaX)*Math.abs(rQS.deltaY);//计算查询区域的面积
         DecimalFormat df = new DecimalFormat("#.00000");
         long deltaX = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaX)))*100000);
@@ -561,9 +565,14 @@ public class GeoHashConversion {
         ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
         rPQueue.push(rectanglePrefix);
         //递归遍历二叉树操作，深度优先遍历，DFS
+        //int indexAA = 0;
         while(!rPQueue.isEmpty()){
             //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
-            if(rPQueue.getLast().length == rPQueue.getFirst().length){
+            double rPQueueSizeStandard = Math.pow(2,(rPQueue.getFirst().length-rectanglePrefix.length));//计算各搜索深度的节点个数
+            if(rPQueue.getLast().length == rPQueue.getFirst().length
+                    &&(rPQueue.getFirst().length-rectanglePrefix.length)>0&&rPQueue.size()<rPQueueSizeStandard){
+                rPArrayArray.add((RectanglePrefix[])rPQueue.toArray());//将当前队列中所有元素添加到另外一个数组中
+                //indexAA++;
                 //计算当前队列中所有同层前缀对应面积的总和
                 long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);
                 long rPQueueRectangleAreaSum = 0;
@@ -597,27 +606,128 @@ public class GeoHashConversion {
             }
         }
         //遍历队列中的前缀，获得对应的geoHash段，进行合并操作
-        for(RectanglePrefix rResult:rPQueue){
-            long[] geoHashValueMinMax = new long[2];
-            geoHashValueMinMax[0] = rResult.prefix;
-            geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rResult.length)+rResult.prefix;
-            if(resultSet.empty()) {
-                resultSet.push(geoHashValueMinMax);
-            }else{
-                long[] geoHashValueMinMaxPop = resultSet.pop();
-                //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
-                if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
-                        &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
-                    geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
+//        for(RectanglePrefix rResult:rPQueue){
+//            long[] geoHashValueMinMax = new long[2];
+//            geoHashValueMinMax[0] = rResult.prefix;
+//            geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rResult.length)+rResult.prefix;
+//            if(resultSet.empty()) {
+//                resultSet.push(geoHashValueMinMax);
+//            }else{
+//                long[] geoHashValueMinMaxPop = resultSet.pop();
+//                //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
+//                if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
+//                        &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
+//                    geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
+//                }else{
+//                    resultSet.push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
+//                }
+//                resultSet.push(geoHashValueMinMax);
+//            }
+//        }
+        System.out.println(rPArrayArray.size());//输出得到的前缀数组的个数
+        int indexStack = 0;
+        for(RectanglePrefix[] rPArray : rPArrayArray){
+            for(RectanglePrefix r:rPArray){
+                long[] geoHashValueMinMax = new long[2];
+                geoHashValueMinMax[0] = r.prefix;
+                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>r.length)+r.prefix;
+
+                if(resultSet.empty()) {
+                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
                 }else{
-                    resultSet.push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
-                }
-                resultSet.push(geoHashValueMinMax);
+                    long[] geoHashValueMinMaxPop = resultSet.pop();
+                    //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
+                    if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
+                            &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
+                        geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
+                    }else{
+                        resultSetArray.get(indexStack).push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
+                    }
+                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
+               }
             }
+            indexStack++;
         }
+        //for(Stack<long[]> sLongs: resultSetArray){
+
+        //}
         return resultSet;
     }
-
+    /**
+     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并，该算法由张洋提
+     * 算法再次修订：修正了一些错误，并将深度优先遍历方式改为广度优先遍历方式，递归结束标志改为面积比率，最后进行GeoHash段的合并
+     * 编码人：刘文东，由刘文东进行重新设计与修订
+     * 修订时间：2016年9月28日16:35:36
+     * @param rQS 矩形查询范围
+     * @return 查询结果的许多GeoHash范围值，long类型
+     */
+    public static ArrayList<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(RectangleQueryScope rQS){
+        Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
+        //ArrayList<ArrayList<RectanglePrefix>> rPArrayArray = new ArrayList<ArrayList<RectanglePrefix>>();
+        //ArrayList<Stack<long[]>> resultSetArray = new ArrayList<Stack<long[]>>();
+        ArrayList<GeoHashIndexRecord> gHIRArray = new ArrayList<GeoHashIndexRecord>();
+        //计算查询区域的面积，扩大10的10次方倍
+        DecimalFormat df = new DecimalFormat("#.00000");
+        long deltaX = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaX)))*100000);
+        long deltaY = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaY)))*100000);
+        double rQSArea = deltaX*deltaY;
+        RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
+        long rPArea = getRectangleQueryScopeAreaFromPrefix(rectanglePrefix);//由基本前缀获取基本矩形的面积
+        ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
+        rPQueue.push(rectanglePrefix);//将基本前缀压栈
+        //递归遍历二叉树操作，深度优先遍历，DFS
+        //int indexAAR = 0;
+        while(!rPQueue.isEmpty()){
+            //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
+            double rPQueueSizeStandard = Math.pow(2,(rPQueue.getFirst().length-rectanglePrefix.length));//计算各搜索深度的节点个数
+            if(rPQueue.getLast().length == rPQueue.getFirst().length
+                    &&(rPQueue.getFirst().length-rectanglePrefix.length)>0&&rPQueue.size()<rPQueueSizeStandard){
+                //rPArrayArray.add((RectanglePrefix[])rPQueue.toArray());
+                //将当前队列中所有元素拷贝到另外一个数组中
+                //ArrayList<RectanglePrefix> rPArrayTemp = new ArrayList<RectanglePrefix>();
+                GeoHashIndexRecord g = new GeoHashIndexRecord();
+                g.searchDepth = rPQueue.getFirst().length-rectanglePrefix.length;
+                g.rQS = rQS;
+                g.sizeOfRectanglePrefix = rPQueue.size();
+                //计算当前队列中所有同层前缀对应面积的总和
+                long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);
+                long rPQueueRectangleAreaSum = 0;
+                for(RectanglePrefix r:rPQueue){
+                    rPQueueRectangleAreaSum += rPQueueRectangleArea;
+                    g.rPArray.add(r);
+                }
+                double areaRatioNow = rPQueueRectangleAreaSum/rQSArea;//面积比例的计算
+                g.areaRatio = areaRatioNow;
+                gHIRArray.add(g);
+                //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值小于1，则跳出循环，退出遍历
+                if(areaRatioNow<=1.001){
+                    break;
+                }
+            }
+            //BFS，广度优先遍历，使用队列来实现
+            RectanglePrefix rPNow = rPQueue.pollLast();
+            //递归结束标志二，一般不会触发该标志，递归遍历主要靠标志一引起
+            if(rPNow.length<(SEARCH_DEPTH_MAX + rectanglePrefix.length)){
+                RectanglePrefix attachOne = rPNow.attachOne();//补1操作
+                RectanglePrefix attachZero = rPNow.attachZero();//补0操作
+                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
+                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
+                //若矩形范围相交，则将前缀码压栈
+                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+                    rPQueue.push(attachZero);
+                }
+                if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){
+                    rPQueue.push(attachOne);
+                }
+            }
+        }
+        //System.out.println(gHIRArray.size());//输出得到的前缀数组的个数
+        for(GeoHashIndexRecord g : gHIRArray){
+            g.getMergedGeoHashLongsFromRectanglePrefixArray();
+            g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();
+        }
+        return gHIRArray;
+    }
 
 
     //以下为60位二进制位的GeoHash编码方式测试，时间：2016年9月21日22:49:42，代码修改人：刘文东，以下代码为无效代码，放弃了这种方案（时间：2016年9月26日23:31:43）

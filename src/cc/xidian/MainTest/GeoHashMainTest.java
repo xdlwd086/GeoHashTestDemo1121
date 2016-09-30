@@ -3,6 +3,7 @@ package cc.xidian.MainTest;
 import cc.xidian.GeoHash.GeoHashConversion;
 import cc.xidian.GeoHash.RectanglePrefix;
 import cc.xidian.GeoHash.RectangleStrBinaryPrefix;
+import cc.xidian.GeoObject.GeoHashIndexRecord;
 import cc.xidian.GeoObject.GeoPointTableRecord;
 import cc.xidian.GeoObject.GeoPointTableRecordSimple;
 import cc.xidian.GeoObject.RectangleQueryScope;
@@ -68,9 +69,9 @@ public class GeoHashMainTest {
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-4.22314,-5.18972,2.55846,1.22579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1_1min;
+        r = rQS0_1;
 //        for(int j=0;j<30;j++) {
-//            System.out.println("================================" + "rQS1_1min" + "=====================================");
+            System.out.println("================================" + "rQS0_1" + "=====================================");
             //2.1 无索引的范围查询，遍历所有记录，复杂度为O(n)
 //        long startTimeQueryWithoutIndex = System.currentTimeMillis();
 //        ArrayList<GeoPointTableRecord> geoPointTableRecordsWithoutIndex
@@ -282,6 +283,16 @@ public class GeoHashMainTest {
 ////            }
 ////
 //        }
+
+        //GeoHash索引算法修订测试，时间：2016年9月30日10:03:35
+        long startTimeTest = System.currentTimeMillis();
+        ArrayList<GeoHashIndexRecord> gHIRArray = GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(r);
+        for(GeoHashIndexRecord g: gHIRArray){
+            System.out.println(g.toString());
+        }
+        long endTimeTest = System.currentTimeMillis();
+        System.out.println("Size: "+gHIRArray.size());
+        System.out.println("Time: "+(endTimeTest - startTimeTest));
         PhoenixSQLOperation.closeConnectionWithHBase();
 
 
