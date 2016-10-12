@@ -26,15 +26,22 @@ public class GeoHashMainTest {
         PhoenixSQLOperation.getConnectionWithHBase();//建立连接
 
         //1、通过Phoenix在HBase上的操作
+        //1.2 删除表操作，该操作只执行一次
+        PhoenixSQLOperation.dropTableNamedGeoPointTable();//只执行一次
         //1.1 创建表并插入数据操作，该操作只执行一次
 //        long startTimeCreateAndInsertRecords = System.currentTimeMillis();
         //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable100M();//只执行一次
+        //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable1MWithLocalIndex();//建表后先创建Phoenix局部索引，然后再插入数据
+        //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//创建一个10M记录的表，分区数为6，建立局部索引，并创建数据
 //        long endTimeCreateAndInsertRecords = System.currentTimeMillis();
 //        System.out.println("CreateAndInsertRecords-Time: "+(endTimeCreateAndInsertRecords - startTimeCreateAndInsertRecords));
-        //1.2 删除表操作，该操作只执行一次
-        //PhoenixSQLOperation.dropTableNamedGeoPointTable();//只执行一次
+
+
         //1.3 查询并写入文件操作，该操作只执行一次，目的是获取表中部分数据并进行查看
-        //PhoenixSQLOperation.selectResultsToFile();//只执行一次
+//        long startTimeWriteToFile = System.currentTimeMillis();
+//        PhoenixSQLOperation.selectResultsToFile();//只执行一次
+//        long endTimeWriteToFile = System.currentTimeMillis();
+//        System.out.println("WriteToFile-Time: "+(endTimeWriteToFile-startTimeWriteToFile));
         //1.4 删除Phoenix二级索引操作，该操作只执行一次
         //PhoenixSQLOperation.dropIndexOfName();//删除二级索引，该操作只执行一次
         //1.5 创建二级索引操作，并计时，该操作只执行一次
@@ -43,6 +50,7 @@ public class GeoHashMainTest {
 //        //PhoenixSQLOperation.createSecondIndexForGeoPointTableLWD1MLong();
 //        //PhoenixSQLOperation.createSecondIndexForGeoHashValueBase32OfTable();
 //        PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable100M();
+//        //PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
 //        long endTimeSecondIndex = System.currentTimeMillis();
 //        System.out.println("CreateSecondIndex-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
 
@@ -108,38 +116,27 @@ public class GeoHashMainTest {
 //        System.out.println("RectangleRangeQueryWithIndex-SizeAndTime:"+gPTRWithUDFFunction.size()
 //               +"#"+(endTimeQueryWithUDFFunction - startTimeQueryWithUDFFunction)/1000.0);
             //2.4GeoHash查询，三种情况，改变搜索深度，进行查询
-//            int count =0;
-//            for (double areaRatioTemp = 1.1; areaRatioTemp <= 4.0; areaRatioTemp+=0.1) {
-//                count++;
-//                DecimalFormat df = new DecimalFormat("#.0000");
-//                double areaRatio = Double.parseDouble(df.format(areaRatioTemp));
+            //int count =0;
+//            for (int areaRatio = 5; areaRatio <= 15; areaRatio++) {
+//                //count++;
+//                //DecimalFormat df = new DecimalFormat("#.0000");
+//                //double areaRatio = Double.parseDouble(df.format(areaRatioTemp));
 //                System.out.println("-----------------------------------------------------------------");
-//                //2.4.0 查询测试
-////            long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
-////            ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
-////                    PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndUDFFunctionUnionAll(r, searchDepthManual);
-////            long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
-////            ArrayList<long[]> gGeoHashLongs =
-////                    GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(r, searchDepthManual);
-////            System.out.println("RectangleQueryScope: " + r.toString());
-////            System.out.println("GeoHashIndexAlgorithm-SearchDepthAndSearchTime: " + searchDepthManual
-////                    + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0);
-////            System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
-////                    + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size());
-                //2.4.1 SQL-GeoHash的BetweenAnd的UnionAll+本地内存二次过滤
+//
+//                //2.4.1 SQL-GeoHash的BetweenAnd的UnionAll+本地内存二次过滤
 //                long startTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
 //                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndSecondFiltering =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAreaRatioAndSecondFilteringUnionAll(r, areaRatio);
+//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndSecondFilteringUnionAll(r, areaRatio);
 //                long endTimeQueryWithGeoHashAndSecondFiltering = System.currentTimeMillis();
 //                //2.4.2 SQL-GeoHash的BetweenAnd与直接判断的UnionAll
 //                long startTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
 //                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndDirectJudge =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAreaRatioAndDirectJudgeUnionAll(r, areaRatio);
+//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndDirectJudgeUnionAll(r, areaRatio);
 //                long endTimeQueryWithGeoHashAndDirectJudge = System.currentTimeMillis();
 //                //2.4.3 SQL-GeoHash的BetweenAnd与UDF函数的UnionAll
 //                long startTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
 //                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndUDFFunction =
-//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAreaRatioAndUDFFunctionUnionAll(r, areaRatio);
+//                        PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAndUDFFunctionUnionAll(r, areaRatio);
 //                long endTimeQueryWithGeoHashAndUDFFunction = System.currentTimeMillis();
 ////                long startTimeQueryWithGeoHashAndUDFFunctionNew = System.currentTimeMillis();
 ////                ArrayList<GeoPointTableRecord> gPTRWithGeoHashAndUDFFunctionNew =
@@ -150,7 +147,7 @@ public class GeoHashMainTest {
 //                        GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(r, areaRatio);
 //                //相关结果输出
 //                System.out.println("RectangleQueryScope: " + r.toString());
-//                System.out.println("GeoHashIndexAlgorithm-AreaAndSearchTime: " + count
+//                System.out.println("GeoHashIndexAlgorithm-AreaAndSearchTime: "
 //                        + "#" + (endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0
 //                        + "%" + (endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0
 //                        + "%" + (endTimeQueryWithGeoHashAndUDFFunction - startTimeQueryWithGeoHashAndUDFFunction) / 1000.0);
@@ -158,7 +155,7 @@ public class GeoHashMainTest {
 //                System.out.println("GeoHashLongsAndRectangleRangeQueryWithIndex-Size: "
 //                        + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering.size()
 //                        + "%" + gPTRWithGeoHashAndDirectJudge.size() + "%" + gPTRWithGeoHashAndUDFFunction.size());
-//////                //相关结果写入文件操作，便于MatLab画图
+////                //相关结果写入文件操作，便于MatLab画图
 //                String strSDTGeoHashThreeAll = count + " "
 //                        + ((endTimeQueryWithGeoHashAndSecondFiltering - startTimeQueryWithGeoHashAndSecondFiltering) / 1000.0 + " ")
 //                        + ((endTimeQueryWithGeoHashAndDirectJudge - startTimeQueryWithGeoHashAndDirectJudge) / 1000.0 + " ")
@@ -205,19 +202,7 @@ public class GeoHashMainTest {
 //                File fileSDTGeoHashThreeAll = new File("rQS1_1minSDTGeoHashSDU20SumMergeAreaRatio10M.txt");
 //                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
 //            }
-//      }
-
-        //GeoHash编码转换正确，测试完成
-//        long geoHashZY = GeoHashConversion.LongLatToHash(-50.0,35.0);
-//        System.out.println(geoHashZY);
-//        double[] lonLatZY = GeoHashConversion.HashToLongLat(geoHashZY);
-//        System.out.println(lonLatZY[0]+"#"+lonLatZY[1]);
-
-        //我的转换方法也正确，张洋的正确
-//        long geoHashLWD = GeoHashConversion.encodeGeoHashFromLonAndLatLong(-50.0,30.0);
-//        System.out.println(geoHashLWD);
-//        double[] lonLatLWD = GeoHashConversion.decodeLonAndLatFromGeoHashLong(geoHashZY);
-//        System.out.println(lonLatLWD[0]+"#"+lonLatLWD[1]);
+        //}
 
 
         //PhoenixSecondTest
@@ -244,21 +229,11 @@ public class GeoHashMainTest {
 //     long[] geoHashValueLongs = PhoenixSQLOperation.getGeoHashValueLongsSelectByRandomGeoIDToTestPhoenixSecondIndex();
 //     long endTimeSelectByGeoID = System.currentTimeMillis();
 //     System.out.println("SelectByGeoID-Time100: "+(endTimeSelectByGeoID - startTimeSelectByGeoID));
-//     long startTimeSelectByGeoName = System.currentTimeMillis();
+//     long startTimeSelectByGeoHashValueLong = System.currentTimeMillis();
 //     PhoenixSQLOperation.selectAndQueryByGeoHashValueLongsToTestPhoenixSecondIndex(geoHashValueLongs);
-//     long endTimeSelectByGeoName = System.currentTimeMillis();
-//     System.out.println("SelectByGeoName-Time100: "+(endTimeSelectByGeoName - startTimeSelectByGeoName));
+//     long endTimeSelectByGeoHashValueLong = System.currentTimeMillis();
+//     System.out.println("SelectByGeoHashValueLong-Time100: "+(endTimeSelectByGeoHashValueLong - startTimeSelectByGeoHashValueLong));
 
-        //GeoHash字符串查询算法测试
-//        RectangleStrBinaryPrefix rSBP = GeoHashConversion.getStrBinaryRectanglePrefixFromRectangleQueryScope(rQS1);
-//     RectangleQueryScope rQSResult = GeoHashConversion.getRectangleQueryScopeFromStrBinaryPrefix(rSBP);
-//     System.out.println(rQSResult.toString());
-        //System.out.println(rSBP.toString());
-//        String strGeoHashBinary = GeoHashConversion.encodeGeoHashFromLonAndLatBinaryString(rQS1.xLongitudeBL,rQS1.yLatitudeBL);
-//        System.out.println(strGeoHashBinary);
-//     System.out.println(Long.parseLong(strGeoHashBinary,2));
-//     double[] xyBL = GeoHashConversion.decodeLonAndLatFromGeoHashBinaryString(strGeoHashBinary);
-//     System.out.println(xyBL[0]+","+xyBL[1]);
 
         //GeoHash叶节点合并测试
 //        for(int searchManualTestMerge=1;searchManualTestMerge<=10;searchManualTestMerge++){
@@ -284,15 +259,17 @@ public class GeoHashMainTest {
 ////
 //        }
 
-        //GeoHash索引算法修订测试，时间：2016年9月30日10:03:35
-        long startTimeTest = System.currentTimeMillis();
-        ArrayList<GeoHashIndexRecord> gHIRArray = GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(r);
-        for(GeoHashIndexRecord g: gHIRArray){
-            System.out.println(g.toString());
-        }
-        long endTimeTest = System.currentTimeMillis();
-        System.out.println("Size: "+gHIRArray.size());
-        System.out.println("Time: "+(endTimeTest - startTimeTest));
+        //GeoHash索引算法修订测试，时间：2016年9月30日10:03:35,该测试代码暂时用不到了。
+//        long startTimeTest = System.currentTimeMillis();
+//        ArrayList<GeoHashIndexRecord> gHIRArray = GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(r);
+//        for(GeoHashIndexRecord g: gHIRArray){
+//            System.out.println(g.toString());
+//        }
+//        long endTimeTest = System.currentTimeMillis();
+//        System.out.println("Size: "+gHIRArray.size());
+//        System.out.println("Time: "+(endTimeTest - startTimeTest));
+
+
         PhoenixSQLOperation.closeConnectionWithHBase();
 
 

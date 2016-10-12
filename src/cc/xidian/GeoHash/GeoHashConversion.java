@@ -553,7 +553,7 @@ public class GeoHashConversion {
      */
     public static Stack<long[]> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(RectangleQueryScope rQS,double areaRatio){
         Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
-        ArrayList<RectanglePrefix[]> rPArrayArray = new ArrayList<RectanglePrefix[]>();
+        //ArrayList<RectanglePrefix[]> rPArrayArray = new ArrayList<RectanglePrefix[]>();
         ArrayList<Stack<long[]>> resultSetArray = new ArrayList<Stack<long[]>>();
         //double rQSArea = Math.abs(rQS.deltaX)*Math.abs(rQS.deltaY);//计算查询区域的面积
         DecimalFormat df = new DecimalFormat("#.00000");
@@ -571,7 +571,7 @@ public class GeoHashConversion {
             double rPQueueSizeStandard = Math.pow(2,(rPQueue.getFirst().length-rectanglePrefix.length));//计算各搜索深度的节点个数
             if(rPQueue.getLast().length == rPQueue.getFirst().length
                     &&(rPQueue.getFirst().length-rectanglePrefix.length)>0&&rPQueue.size()<rPQueueSizeStandard){
-                rPArrayArray.add((RectanglePrefix[])rPQueue.toArray());//将当前队列中所有元素添加到另外一个数组中
+                //rPArrayArray.add((RectanglePrefix[])rPQueue.toArray());//将当前队列中所有元素添加到另外一个数组中
                 //indexAA++;
                 //计算当前队列中所有同层前缀对应面积的总和
                 long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);
@@ -580,11 +580,7 @@ public class GeoHashConversion {
                     rPQueueRectangleAreaSum += rPQueueRectangleArea;
                 }
                 //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值符合一定条件，则跳出循环，退出遍历
-//                if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){
-//                    break;
-//                }
-                //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值小于1，则跳出循环，退出遍历
-                if(rPQueueRectangleAreaSum/rQSArea<=1){
+                if(rPQueueRectangleAreaSum/rQSArea>=1&&rPQueueRectangleAreaSum/rQSArea <= areaRatio){
                     break;
                 }
             }
@@ -606,48 +602,48 @@ public class GeoHashConversion {
             }
         }
         //遍历队列中的前缀，获得对应的geoHash段，进行合并操作
-//        for(RectanglePrefix rResult:rPQueue){
-//            long[] geoHashValueMinMax = new long[2];
-//            geoHashValueMinMax[0] = rResult.prefix;
-//            geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rResult.length)+rResult.prefix;
-//            if(resultSet.empty()) {
-//                resultSet.push(geoHashValueMinMax);
-//            }else{
-//                long[] geoHashValueMinMaxPop = resultSet.pop();
-//                //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
-//                if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
-//                        &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
-//                    geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
-//                }else{
-//                    resultSet.push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
-//                }
-//                resultSet.push(geoHashValueMinMax);
-//            }
-//        }
-        System.out.println(rPArrayArray.size());//输出得到的前缀数组的个数
-        int indexStack = 0;
-        for(RectanglePrefix[] rPArray : rPArrayArray){
-            for(RectanglePrefix r:rPArray){
-                long[] geoHashValueMinMax = new long[2];
-                geoHashValueMinMax[0] = r.prefix;
-                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>r.length)+r.prefix;
-
-                if(resultSet.empty()) {
-                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
+        for(RectanglePrefix rResult:rPQueue){
+            long[] geoHashValueMinMax = new long[2];
+            geoHashValueMinMax[0] = rResult.prefix;
+            geoHashValueMinMax[1] = (0xffffffffffffffffL>>>rResult.length)+rResult.prefix;
+            if(resultSet.empty()) {
+                resultSet.push(geoHashValueMinMax);
+            }else{
+                long[] geoHashValueMinMaxPop = resultSet.pop();
+                //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
+                if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
+                        &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
+                    geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
                 }else{
-                    long[] geoHashValueMinMaxPop = resultSet.pop();
-                    //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
-                    if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
-                            &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
-                        geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
-                    }else{
-                        resultSetArray.get(indexStack).push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
-                    }
-                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
-               }
+                    resultSet.push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
+                }
+                resultSet.push(geoHashValueMinMax);
             }
-            indexStack++;
         }
+//        System.out.println(rPArrayArray.size());//输出得到的前缀数组的个数
+//        int indexStack = 0;
+//        for(RectanglePrefix[] rPArray : rPArrayArray){
+//            for(RectanglePrefix r:rPArray){
+//                long[] geoHashValueMinMax = new long[2];
+//                geoHashValueMinMax[0] = r.prefix;
+//                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>r.length)+r.prefix;
+//
+//                if(resultSet.empty()) {
+//                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
+//                }else{
+//                    long[] geoHashValueMinMaxPop = resultSet.pop();
+//                    //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
+//                    if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
+//                            &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
+//                        geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
+//                    }else{
+//                        resultSetArray.get(indexStack).push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
+//                    }
+//                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
+//               }
+//            }
+//            indexStack++;
+//        }
         //for(Stack<long[]> sLongs: resultSetArray){
 
         //}
@@ -696,6 +692,8 @@ public class GeoHashConversion {
                     rPQueueRectangleAreaSum += rPQueueRectangleArea;
                     g.rPArray.add(r);
                 }
+                g.getMergedGeoHashLongsFromRectanglePrefixArray();//进行GeoHash段的合并
+                g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();
                 double areaRatioNow = rPQueueRectangleAreaSum/rQSArea;//面积比例的计算
                 g.areaRatio = areaRatioNow;
                 gHIRArray.add(g);
