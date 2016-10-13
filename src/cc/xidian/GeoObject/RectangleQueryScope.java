@@ -52,7 +52,7 @@ public class RectangleQueryScope {
         return (g.xLongitude>=this.xLongitudeBL&&g.xLongitude<=this.xLongitudeTR&&g.yLatitude>=yLatitudeBL&&g.yLatitude<=yLatitudeTR);
     }
     public boolean isContainGeoPointTableRecord(GeoPointTableRecordSimple g){
-        return (g.xLongitude>=this.xLongitudeBL&&g.xLongitude<=this.xLongitudeTR&&g.yLatitude>=yLatitudeBL&&g.yLatitude<=yLatitudeTR);
+        return (g.xLongitude>=this.xLongitudeBL&&g.xLongitude<=this.xLongitudeTR&&g.yLatitude>=this.yLatitudeBL&&g.yLatitude<=this.yLatitudeTR);
     }
     public boolean isContainRectangleQueryScope(RectangleQueryScope rQS){
         return (this.xLongitudeBL<=rQS.xLongitudeBL&&this.xLongitudeTR>=rQS.xLongitudeTR&&
