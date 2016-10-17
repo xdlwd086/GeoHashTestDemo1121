@@ -657,11 +657,12 @@ public class GeoHashConversion {
      * @param rQS 矩形查询范围
      * @return 查询结果的许多GeoHash范围值，long类型
      */
-    public static ArrayList<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(RectangleQueryScope rQS){
+    public static Stack<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(RectangleQueryScope rQS){
         Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
         //ArrayList<ArrayList<RectanglePrefix>> rPArrayArray = new ArrayList<ArrayList<RectanglePrefix>>();
         //ArrayList<Stack<long[]>> resultSetArray = new ArrayList<Stack<long[]>>();
-        ArrayList<GeoHashIndexRecord> gHIRArray = new ArrayList<GeoHashIndexRecord>();
+        //ArrayList<GeoHashIndexRecord> gHIRArray = new ArrayList<GeoHashIndexRecord>();
+        Stack<GeoHashIndexRecord> gHIRStack = new Stack<GeoHashIndexRecord>();
         //计算查询区域的面积，扩大10的10次方倍
         DecimalFormat df = new DecimalFormat("#.00000");
         long deltaX = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaX)))*100000);
@@ -696,10 +697,21 @@ public class GeoHashConversion {
                 g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();
                 double areaRatioNow = rPQueueRectangleAreaSum/rQSArea;//面积比例的计算
                 g.areaRatio = areaRatioNow;
-                gHIRArray.add(g);
                 //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值小于1，则跳出循环，退出遍历
-                if(areaRatioNow<=1.001){
+                if(areaRatioNow<=1.1){
                     break;
+                }
+                //若合并后的GeoHash段相同，则选择搜索深度最深的结果
+                if(gHIRStack.empty()){
+                    gHIRStack.push(g);
+                }else{
+                    GeoHashIndexRecord gPop = gHIRStack.pop();
+                    if(gPop.sizeOfGeoHashLongs == g.sizeOfGeoHashLongs){
+                        gHIRStack.push(g);
+                    }else{
+                        gHIRStack.push(gPop);
+                        gHIRStack.push(g);
+                    }
                 }
             }
             //BFS，广度优先遍历，使用队列来实现
@@ -719,12 +731,7 @@ public class GeoHashConversion {
                 }
             }
         }
-        //System.out.println(gHIRArray.size());//输出得到的前缀数组的个数
-        for(GeoHashIndexRecord g : gHIRArray){
-            g.getMergedGeoHashLongsFromRectanglePrefixArray();
-            g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();
-        }
-        return gHIRArray;
+        return gHIRStack;
     }
 
 
