@@ -658,7 +658,7 @@ public class GeoHashConversion {
      * @return 查询结果的许多GeoHash范围值，long类型
      */
     public static Stack<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWD(RectangleQueryScope rQS){
-        Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
+        //Stack<long[]> resultSet = new Stack<long[]>();//使用栈结构保存结果集
         //ArrayList<ArrayList<RectanglePrefix>> rPArrayArray = new ArrayList<ArrayList<RectanglePrefix>>();
         //ArrayList<Stack<long[]>> resultSetArray = new ArrayList<Stack<long[]>>();
         //ArrayList<GeoHashIndexRecord> gHIRArray = new ArrayList<GeoHashIndexRecord>();
@@ -667,7 +667,7 @@ public class GeoHashConversion {
         DecimalFormat df = new DecimalFormat("#.00000");
         long deltaX = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaX)))*100000);
         long deltaY = (long)(Double.parseDouble(df.format(Math.abs(rQS.deltaY)))*100000);
-        double rQSArea = deltaX*deltaY;
+        double rQSArea = deltaX*deltaY;//计算查询范围的面积
         RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
         long rPArea = getRectangleQueryScopeAreaFromPrefix(rectanglePrefix);//由基本前缀获取基本矩形的面积
         ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
@@ -677,26 +677,26 @@ public class GeoHashConversion {
         while(!rPQueue.isEmpty()){
             //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
             double rPQueueSizeStandard = Math.pow(2,(rPQueue.getFirst().length-rectanglePrefix.length));//计算各搜索深度的节点个数
+            //如果队列中的节点刚好处于同一层且搜索深度大于0且队列中元素的个数小于该层节点的标准个数（即该层节点有舍弃的节点）
             if(rPQueue.getLast().length == rPQueue.getFirst().length
                     &&(rPQueue.getFirst().length-rectanglePrefix.length)>0&&rPQueue.size()<rPQueueSizeStandard){
-                //rPArrayArray.add((RectanglePrefix[])rPQueue.toArray());
-                //将当前队列中所有元素拷贝到另外一个数组中
-                //ArrayList<RectanglePrefix> rPArrayTemp = new ArrayList<RectanglePrefix>();
+                //开始构造索引记录对象
                 GeoHashIndexRecord g = new GeoHashIndexRecord();
-                g.searchDepth = rPQueue.getFirst().length-rectanglePrefix.length;
-                g.rQS = rQS;
-                g.sizeOfRectanglePrefix = rPQueue.size();
+                g.searchDepth = rPQueue.getFirst().length-rectanglePrefix.length;//搜索深度
+                g.rQS = rQS;//查询范围
+                g.sizeOfRectanglePrefix = rPQueue.size();//当前层前缀码对象个数
                 //计算当前队列中所有同层前缀对应面积的总和
-                long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);
-                long rPQueueRectangleAreaSum = 0;
+                long rPQueueRectangleArea = rPArea>>>(rPQueue.getFirst().length-rectanglePrefix.length);//当前层前缀码对于的矩形面积
+                long rPQueueRectangleAreaSum = 0;//面积和
                 for(RectanglePrefix r:rPQueue){
-                    rPQueueRectangleAreaSum += rPQueueRectangleArea;
-                    g.rPArray.add(r);
+                    rPQueueRectangleAreaSum += rPQueueRectangleArea;//求面积和
+                    g.rPArray.add(r);//将当前层的所有前缀码添加到索引记录对象的前缀码数组中
                 }
-                g.getMergedGeoHashLongsFromRectanglePrefixArray();//进行GeoHash段的合并
-                g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();
+                //将前缀码数组中的前缀码取出，求对应的GeoHash段，进行合操作，并将合并后的GeoHash段添加到索引记录对象的GeoHash段数组中
+                g.getMergedGeoHashLongsFromRectanglePrefixArray();
+                g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();//求合并后的GeoHash段的个数
                 double areaRatioNow = rPQueueRectangleAreaSum/rQSArea;//面积比例的计算
-                g.areaRatio = areaRatioNow;
+                g.areaRatio = areaRatioNow;//记录面积比率
                 //递归结束标志一：面积比较，若当前队列中留下的当前层的前缀对对应面积与查询范围面积的比值小于1，则跳出循环，退出遍历
                 if(areaRatioNow<=1.1){
                     break;
@@ -723,7 +723,7 @@ public class GeoHashConversion {
                 RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
                 RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
                 //若矩形范围相交，则将前缀码压栈
-                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+                if(rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
                     rPQueue.push(attachZero);
                 }
                 if(rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)){

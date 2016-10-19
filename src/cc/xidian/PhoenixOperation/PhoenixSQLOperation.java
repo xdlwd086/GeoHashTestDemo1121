@@ -56,24 +56,24 @@ public class PhoenixSQLOperation {
      */
     public static void createAndInsertRecordToTableNamedGeoPointTable10M(){
         //1、创建表操作
-        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple10MGR6GlobalNoInclude("
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple10MGR12Global("
                 +"geoID    Integer not null Primary key,"
                 +"geoName    varchar(32),"
                 +"xLongitude    double,"
                 +"yLatitude    double,"
                 +"geoHashValueLong    bigint "
-                +") SALT_BUCKETS=6";
+                +")SALT_BUCKETS=12";
         long startTimeCreateTable = System.currentTimeMillis();
         createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
         long endTimeCreateTable = System.currentTimeMillis();
-        //PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
+//        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
         //2、插入数据操作
-        String sqlInsert = "upsert into GeoPointTableLWDSimple10MGR6GlobalNoInclude values(?,?,?,?,?)";
+        String sqlInsert = "upsert into GeoPointTableLWDSimple10MGR12Global values(?,?,?,?,?)";
         long startTimeInsertRecord = System.currentTimeMillis();
         insertRecordToTableNamedGeoPointTable(sqlInsert);
         long endTimeInsertRecord  = System.currentTimeMillis();
         //3、查询操作
-        String sqlSelect = "select * from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoID > 9999000";
+        String sqlSelect = "select * from GeoPointTableLWDSimple10MGR12Global where geoID > 9999000";
         long startTimeSelectHaveResults = System.currentTimeMillis();
         selectHaveResults(sqlSelect);
         long endTimeSelectHaveResults = System.currentTimeMillis();
@@ -118,7 +118,7 @@ public class PhoenixSQLOperation {
      * 删除表操作很少执行
      */
     public static void dropTableNamedGeoPointTable(){
-        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWD1MGL";
+        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWDSimple10MGR6Global";
         try {
             stmt.executeUpdate(sqlDropTableNamedGeoPointTable);
         } catch (SQLException e) {
@@ -981,6 +981,332 @@ public class PhoenixSQLOperation {
         String sqlGeoHashQueryUnionAllBetweenAndSecondFiltering = "";
 //        String strGeoHashQueryOrBetweenAndAndSecondFiltering = "";
 //        String sqlGeoHashQueryUnionAllBetweenAndSecondFilteringHint = "";
+        if(gLength>1) {
+            for (int i = 0; i < gLength - 1; i++) {
+                long[] gMinMax = geoHashLongQueryResults.get(i);
+                sqlGeoHashQueryUnionAllBetweenAndSecondFiltering += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                        "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1] + " UNION ALL ";
+//                sqlGeoHashQueryUnionAllBetweenAndSecondFilteringHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                        " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                        "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+" UNION ALL ";
+//                strGeoHashQueryOrBetweenAndAndSecondFiltering += " geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+ " or ";
+            }
+            //}
+            //最后一个geoHash段
+            long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength - 1);
+            //3.1.4 Union All的使用
+            sqlGeoHashQueryUnionAllBetweenAndSecondFiltering += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                    "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMaxEnd[0] + " and " + gMinMaxEnd[1];
+//        sqlGeoHashQueryUnionAllBetweenAndSecondFilteringHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+//        strGeoHashQueryOrBetweenAndAndSecondFiltering += " geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+        }
+        //使用or语法的查询语句判断
+//        String sqlGeoHashQueryOrBetweenAndAndSecondFiltering = "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6Global where "+strGeoHashQueryOrBetweenAndAndSecondFiltering;
+//        String sqlGeoHashQueryOrBetweenAndAndSecondFilteringHint = "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where "+strGeoHashQueryOrBetweenAndAndSecondFiltering;
+        //打印SQL语句的目的是在Phoenix命令行客户端进行
+        //System.out.println(sqlGeoHashQueryOrBetweenAndAndSecondFiltering);
+        //System.out.println(sqlGeoHashQueryUnionAllBetweenAndSecondFiltering);
+        try {
+            rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndSecondFiltering);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个，但这个判空函数是错误的
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            int count=0;
+            while(rs.next()){
+                count++;
+                int geoID = rs.getInt("geoID");
+                String geoName = rs.getString("geoName");
+                double xLongitude = rs.getDouble("xLongitude");
+                double yLatitude = rs.getDouble("yLatitude");
+                //String geoHashValue = rs.getString("geoHashValue");
+                long geoHashValueLong = rs.getLong("geoHashValueLong");
+                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                if(rQS.isContainGeoPointTableRecord(g)){
+                    geoPointTableRecords.add(g);
+                }
+            }
+            System.out.println("-------------------"+count+"=======================");
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return geoPointTableRecords;
+    }
+    /**
+     * 函数功能：Query3.2 GeoHash(UnionAll)+直接判断
+     * @param rQS 矩形查询范围对象
+     * @param areaRatio 面积比率，需要手动设置，以后可能会修改
+     * @return 矩形查询后的记录
+     */
+    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndDirectJudgeUnionAllFrom10MTable(
+            RectangleQueryScope rQS,double areaRatio){
+        ResultSet rs;//查询结果集
+        ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
+        //GeoHash索引部分
+//        ArrayList<long[]> geoHashLongQueryResults =
+//                GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScore(rQS,searchDepthManual);
+        //GeoHash段合并后的结果集
+//        Stack<long[]> geoHashLongQueryResults =
+//                GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMerge(rQS,searchDepthManual);
+        Stack<long[]> geoHashLongQueryResults =
+                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS, areaRatio);
+        String strDirectJudge = "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
+                + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
+        //输出测试
+        //for(long[] g:geoHashLongQueryResults){
+        //System.out.println(g[0]+"#"+g[1]);
+        //}
+        String sqlGeoHashQueryUnionAllBetweenAndDirectJudge = "";
+        String strGeoHashQueryOrBetweenAndAndDirectJudge = "";
+        String sqlGeoHashQueryUnionAllBetweenAndDirectJudgeHint = "";
+        int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
+        //输出测试
+        //System.out.println(gLength);//输出长度.
+        //如果geoHash段个数大于1
+//        if(gLength>1) {
+//            for (int i = 0; i < gLength - 1; i++) {
+//                long[] gMinMax = geoHashLongQueryResults.get(i);
+//                double[] gMinMaxBL = GeoHashConversion.HashToLongLat(gMinMax[0]);
+//                double[] gMinMaxTR = GeoHashConversion.HashToLongLat(gMinMax[1]);
+//                RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxBL[0], gMinMaxBL[1], gMinMaxTR[0], gMinMaxTR[1]);
+//                if (!rQS.isContainRectangleQueryScope(rQSGeoHashMerge)) {
+//                    sqlGeoHashQueryUnionAllBetweenAndDirectJudge += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1]
+//                            + " and " + strDirectJudge + " UNION ALL ";
+////                    sqlGeoHashQueryUnionAllBetweenAndDirectJudgeHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+////                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+////                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+////                            +" and "+strDirectJudge+" UNION ALL ";
+//                    strGeoHashQueryOrBetweenAndAndDirectJudge += "geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1] + " and " + strDirectJudge + " or ";
+//                } else {
+//                    sqlGeoHashQueryUnionAllBetweenAndDirectJudge += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1]
+//                            + " UNION ALL ";
+////                    sqlGeoHashQueryUnionAllBetweenAndDirectJudgeHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+////                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+////                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+////                            +" UNION ALL ";
+//                    strGeoHashQueryOrBetweenAndAndDirectJudge += "geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1] + " or ";
+//                }
+//            }
+//            //}
+//            //最后一个geoHash段
+//            long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength - 1);
+//            //geoHash段的SQL语句字符串
+//            double[] gMinMaxEndBL = GeoHashConversion.HashToLongLat(gMinMaxEnd[0]);
+//            double[] gMinMaxEndTR = GeoHashConversion.HashToLongLat(gMinMaxEnd[1]);
+//            RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxEndBL[0], gMinMaxEndBL[1], gMinMaxEndTR[0], gMinMaxEndTR[1]);
+//            if (!rQS.isContainRectangleQueryScope(rQSGeoHashMerge)) {
+//                sqlGeoHashQueryUnionAllBetweenAndDirectJudge += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                        "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMaxEnd[0] + " and " + gMinMaxEnd[1] + " and " + strDirectJudge;
+////            sqlGeoHashQueryUnionAllBetweenAndDirectJudgeHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+////                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+////                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strDirectJudge;
+////            strGeoHashQueryOrBetweenAndAndDirectJudge += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strDirectJudge;
+//            } else {
+//                sqlGeoHashQueryUnionAllBetweenAndDirectJudge += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                        "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMaxEnd[0] + " and " + gMinMaxEnd[1];
+////            sqlGeoHashQueryUnionAllBetweenAndDirectJudgeHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+////                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+////                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+////            strGeoHashQueryOrBetweenAndAndDirectJudge += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+//            }
+//        }
+        //使用or语法的查询语句判断
+//        String sqlGeoHashQueryOrBetweenAndAndDirectJudge = "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6Global where "+strGeoHashQueryOrBetweenAndAndDirectJudge;
+//        String sqlGeoHashQueryOrBetweenAndAndDirectJudgeHint = "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where "+strGeoHashQueryOrBetweenAndAndDirectJudge;
+        //打印SQL语句的目的是在Phoenix命令行客户端进行
+        //System.out.println(sqlGeoHashQueryOrBetweenAndAndDirectJudge);
+        //System.out.println(sqlGeoHashQueryOrBetweenAndAndDirectJudgeHint);
+        //System.out.println(sqlGeoHashQueryUnionAllBetweenAndDirectJudge);
+        try {
+            rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndDirectJudge);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            while(rs.next()){
+                int geoID = rs.getInt("geoID");
+                String geoName = rs.getString("geoName");
+                double xLongitude = rs.getDouble("xLongitude");
+                double yLatitude = rs.getDouble("yLatitude");
+                //String geoHashValue = rs.getString("geoHashValue");
+                long geoHashValueLong = rs.getLong("geoHashValueLong");
+                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                geoPointTableRecords.add(g);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return geoPointTableRecords;
+    }
+    /**
+     * 函数功能：Query3.3 GeoHash+UDF函数
+     * @param rQS 矩形查询范围对象
+     * @param areaRatio 面积比率，需要手动设置，以后可能会修改
+     * @return 矩形查询后的记录
+     *
+     */
+    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndUDFFunctionUnionAllFrom10MTable(
+            RectangleQueryScope rQS,double areaRatio){
+        ResultSet rs;//查询结果集
+        ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
+        //UDF函数操作
+        String sqlDropRectangleQueryUDFFunction = "DROP FUNCTION IF EXISTS RectangleQueryUDFFunction";//删除UDF函数的SQL语句
+        String sqlCreateRectangleQueryUDFFunction = "CREATE FUNCTION RectangleQueryUDFFunction(Double, Double, Varchar) " +
+                "returns Integer as 'cc.xidian.PhoenixOperation.UDFRectangleDemoLWD' " +
+                "using jar 'hdfs://cloudgis/apps/hbase/data/lib/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
+        String sqlUDFConstraint = rQS.xLongitudeBL+","+rQS.yLatitudeBL+","+rQS.xLongitudeTR+","+rQS.yLatitudeTR;
+        String strUDFFunction = "RectangleQueryUDFFunction(xLongitude,yLatitude,'"+sqlUDFConstraint+"')=1";
+        //经刘文东改进后的GeoHash索引算法，使用BFS和面积比值
+        Stack<long[]> geoHashLongQueryResults =
+                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS,areaRatio);
+        //输出测试
+        //for(long[] g:geoHashLongQueryResults){
+        //System.out.println(g[0]+"#"+g[1]);
+        //}
+        //String sqlWhereConstraint = "";//SQL语句
+        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction = "";
+        String strGeoHashQueryOrBetweenAndAndUDFFunction = "";
+        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint = "";
+        int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
+        //输出测试
+        //System.out.println(gLength);//输出长度
+        //如果geoHash段个数大于1
+        if(gLength>1) {
+            for (int i = 0; i < gLength - 1; i++) {
+                long[] gMinMax = geoHashLongQueryResults.get(i);
+                double[] gMinMaxBL = GeoHashConversion.HashToLongLat(gMinMax[0]);
+                double[] gMinMaxTR = GeoHashConversion.HashToLongLat(gMinMax[1]);
+                RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxBL[0], gMinMaxBL[1], gMinMaxTR[0], gMinMaxTR[1]);
+                //System.out.println("------------------:"+rQSGeoHashMerge.toString());
+                //该包含判断基本无效，因为对geoHash段进行合并操作后，得到的GeoHash段范围很大，被查询范围包含的可能性比较小
+                if (!rQS.isContainRectangleQueryScope(rQSGeoHashMerge)) {
+                    //System.out.println("-------------------:"+rQSGeoHashMerge.toString());
+                    //若不包含，则需要UDF函数二次过滤
+                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                            "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1]
+                            + " and " + strUDFFunction + " UNION ALL ";
+//                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+//                            +" and "+strUDFFunction+" UNION ALL ";
+//                    //使用or语法的查询语句判断
+//                    strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+" and "+strUDFFunction + " or ";
+                } else {
+                    //若包含，直接返回GeoHash段查询结果，不需要UDF函数二次过滤。
+                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                            "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMax[0] + " and " + gMinMax[1]
+                            + " UNION ALL ";
+//                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+//                            +" UNION ALL ";
+//                    //使用or语法的查询语句判断
+//                    strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1] + " or ";
+                }
+            }
+            //}
+            //最后一个geoHash段
+            long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength - 1);
+            double[] gMinMaxEndBL = GeoHashConversion.HashToLongLat(gMinMaxEnd[0]);
+            double[] gMinMaxEndTR = GeoHashConversion.HashToLongLat(gMinMaxEnd[1]);
+            RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxEndBL[0], gMinMaxEndBL[1], gMinMaxEndTR[0], gMinMaxEndTR[1]);
+            //该包含判断基本无效，因为对geoHash段进行合并操作后，得到的GeoHash段范围很大，被查询范围包含的可能性比较小
+            if (!rQS.isContainRectangleQueryScope(rQSGeoHashMerge)) {
+                //若不包含，则需要UDF函数二次过滤
+                sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                        "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMaxEnd[0] + " and " + gMinMaxEnd[1] + " and " + strUDFFunction;
+//            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strUDFFunction;
+//            //使用or语法的查询语句判断
+//            strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strUDFFunction;
+            } else {
+                //若包含，直接返回GeoHash段查询结果，不需要UDF函数二次过滤。
+                sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+                        "from GeoPointTableLWDSimple10MGR6Global where geoHashValueLong between " + gMinMaxEnd[0] + " and " + gMinMaxEnd[1];
+//            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+//            //使用or语法的查询语句判断
+//            strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+            }
+        }
+        //使用or语法的查询语句判断
+//        String sqlGeoHashQueryOrBetweenAndAndUDFFunction = "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6Global where "+strGeoHashQueryOrBetweenAndAndUDFFunction;
+//        String sqlGeoHashQueryOrBetweenAndAndUDFFunctionHint = "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where "+strGeoHashQueryOrBetweenAndAndUDFFunction;
+        //打印SQL语句的目的是在Phoenix命令行客户端进行
+        //System.out.println(sqlGeoHashQueryOrBetweenAndAndUDFFunction);
+        //System.out.println(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
+        try {
+            Statement stmtUDF = conn.createStatement();
+            stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
+            stmtUDF.execute(sqlCreateRectangleQueryUDFFunction);
+            rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个，但次出的判断并不能起到作用，程序错误，有待修正
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            while(rs.next()){
+                int geoID = rs.getInt("geoID");
+                String geoName = rs.getString("geoName");
+                double xLongitude = rs.getDouble("xLongitude");
+                double yLatitude = rs.getDouble("yLatitude");
+                //String geoHashValue = rs.getString("geoHashValue");
+                long geoHashValueLong = rs.getLong("geoHashValueLong");
+                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                geoPointTableRecords.add(g);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return geoPointTableRecords;
+    }
+    //=========================================以下为新索引算法的测试======================================
+    /**
+     * 函数功能：Query3.1 GeoHash+客户端二次过滤，建立GeoHash索引，根据索引查出记录集，返回本地内存，然后进行二次过滤
+     * 分析：本查询方式耗时的地方有两个，首先是GeoHash索引段SQL语句的解析，要想提高解析速度，需对GeoHash列建立二级索引，并采用优化的SQL方式，
+     * 二是返回记录集的大小，如果GeoHash索引建的好，返回的记录集比较小，这样，本地内存的过滤效果肯定特别高
+     * @param rQS 矩形查询范围对象
+     * @param geoHashLongQueryResults 面积比率，需要手动设置，以后可能会修改
+     * @return 矩形查询后的记录
+     */
+    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndSecondFilteringUnionAllFrom10MTableTest(
+            Stack<long[]> geoHashLongQueryResults,RectangleQueryScope rQS){
+        ResultSet rs;//查询结果集
+        ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
+        //GeoHash索引部分
+        //由刘文东改造后的Geohash索引算法
+//        Stack<long[]> geoHashLongQueryResults =
+//                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS, areaRatio);
+        //输出测试
+//        for(long[] g:geoHashLongQueryResults){
+//            System.out.println(g[0]+"#"+g[1]);
+//        }
+        int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
+        //System.out.println(gLength);//输出长度
+        //如果geoHash段个数大于1
+        String sqlGeoHashQueryUnionAllBetweenAndSecondFiltering = "";
+//        String strGeoHashQueryOrBetweenAndAndSecondFiltering = "";
+//        String sqlGeoHashQueryUnionAllBetweenAndSecondFilteringHint = "";
         if(gLength>1){
             for(int i=0;i<gLength-1;i++){
                 long[] gMinMax = geoHashLongQueryResults.get(i);
@@ -1042,11 +1368,11 @@ public class PhoenixSQLOperation {
     /**
      * 函数功能：Query3.2 GeoHash(UnionAll)+直接判断
      * @param rQS 矩形查询范围对象
-     * @param areaRatio 面积比率，需要手动设置，以后可能会修改
+     * @param geoHashLongQueryResults 面积比率，需要手动设置，以后可能会修改
      * @return 矩形查询后的记录
      */
-    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndDirectJudgeUnionAllFrom10MTable(
-            RectangleQueryScope rQS,double areaRatio){
+    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndDirectJudgeUnionAllFrom10MTableTest(
+            Stack<long[]> geoHashLongQueryResults,RectangleQueryScope rQS){
         ResultSet rs;//查询结果集
         ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
         //GeoHash索引部分
@@ -1055,8 +1381,8 @@ public class PhoenixSQLOperation {
         //GeoHash段合并后的结果集
 //        Stack<long[]> geoHashLongQueryResults =
 //                GeoHashConversion.rangeQueryWithGeoHashIndexAccordingToRectangleQueryScoreLeafMerge(rQS,searchDepthManual);
-        Stack<long[]> geoHashLongQueryResults =
-                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS, areaRatio);
+//        Stack<long[]> geoHashLongQueryResults =
+//                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS, areaRatio);
         String strDirectJudge = "xLongitude>="+rQS.xLongitudeBL+" and "+"xLongitude <= "+rQS.xLongitudeTR
                 + " and "+"yLatitude >= "+rQS.yLatitudeBL+" and "+"yLatitude <= "+rQS.yLatitudeTR;
         //输出测试
@@ -1154,12 +1480,12 @@ public class PhoenixSQLOperation {
     /**
      * 函数功能：Query3.3 GeoHash+UDF函数
      * @param rQS 矩形查询范围对象
-     * @param areaRatio 面积比率，需要手动设置，以后可能会修改
+     * @param geoHashLongQueryResults 面积比率，需要手动设置，以后可能会修改
      * @return 矩形查询后的记录
      *
      */
-    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndUDFFunctionUnionAllFrom10MTable(
-            RectangleQueryScope rQS,double areaRatio){
+    public static ArrayList<GeoPointTableRecordSimple> selectAndQueryRecordsWithGeoHashIndexAreaRatioAndUDFFunctionUnionAllFrom10MTableTest(
+            Stack<long[]> geoHashLongQueryResults,RectangleQueryScope rQS){
         ResultSet rs;//查询结果集
         ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
         //UDF函数操作
@@ -1170,16 +1496,16 @@ public class PhoenixSQLOperation {
         String sqlUDFConstraint = rQS.xLongitudeBL+","+rQS.yLatitudeBL+","+rQS.xLongitudeTR+","+rQS.yLatitudeTR;
         String strUDFFunction = "RectangleQueryUDFFunction(xLongitude,yLatitude,'"+sqlUDFConstraint+"')=1";
         //经刘文东改进后的GeoHash索引算法，使用BFS和面积比值
-        Stack<long[]> geoHashLongQueryResults =
-                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS,areaRatio);
+//        Stack<long[]> geoHashLongQueryResults =
+//                GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatio(rQS,areaRatio);
         //输出测试
         //for(long[] g:geoHashLongQueryResults){
         //System.out.println(g[0]+"#"+g[1]);
         //}
         //String sqlWhereConstraint = "";//SQL语句
         String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction = "";
-        String strGeoHashQueryOrBetweenAndAndUDFFunction = "";
-        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint = "";
+//        String strGeoHashQueryOrBetweenAndAndUDFFunction = "";
+//        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint = "";
         int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
         //输出测试
         //System.out.println(gLength);//输出长度
@@ -1278,6 +1604,7 @@ public class PhoenixSQLOperation {
         }//执行SQL语句并保存结果
         return geoPointTableRecords;
     }
+
     /**
      * 函数功能：构建二级索引，该函数只执行一次
      */
@@ -1331,10 +1658,10 @@ public class PhoenixSQLOperation {
      */
     public static void createSecondIndexHintForGeoHashValueLongOfTable(){
         //对GeoHashValue列构建二级索引的SQL语句，不区分大小写，SQL语句
-//        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MR6Global on GeoPointTableLWDSimple10MGR6Global(geoHashValueLong) " +
-//                "include(geoID,geoName,xLongitude,yLatitude)SALT_BUCKETS=6";
-        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude on GeoPointTableLWDSimple10MGR6GlobalNoInclude(geoHashValueLong) " +
-                "SALT_BUCKETS=6";
+        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MRDGlobal on GeoPointTableLWDSimple10MGRDGlobal(geoHashValueLong) " +
+                "include(geoID,geoName,xLongitude,yLatitude)";//" SALT_BUCKETS=6";
+//        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MRDefaultGlobal on GeoPointTableLWDSimple10MGRDefaultGlobal(geoHashValueLong) " +
+//                "SALT_BUCKETS=6";
         //String sqlCreateIndex = "Create local index idx_geoHashValueLong_lwd_Local_10MRegion on GeoPointTableLWDSimple10MGRegion(geoHashValueLong) ";
         try {
             stmt.executeUpdate(sqlCreateIndex);
@@ -1380,7 +1707,7 @@ public class PhoenixSQLOperation {
      * 函数功能：删除二级索引，该函数只执行一次，修改时，要注意
      */
     public static void dropIndexOfName(){
-        String sqlDropIndexOfName = "Drop index idx_geoHashValueLong_lwd_local_10MR6L on GeoPointTableLWDSimple10MGR6L";
+        String sqlDropIndexOfName = "Drop index idx_geoHashValueLong_lwd_Covered_10MRDGlobal on GeoPointTableLWDSimple10MGRDGlobal";
         try {
             stmt.executeUpdate(sqlDropIndexOfName);
         } catch (SQLException e) {
