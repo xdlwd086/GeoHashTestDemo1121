@@ -33,10 +33,15 @@ public class GeoHashMainTest {
 //        long startTimeCreateAndInsertRecords = System.currentTimeMillis();
         //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable100M();//只执行一次
         //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable1MWithLocalIndex();//建表后先创建Phoenix局部索引，然后再插入数据
-        PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//创建一个10M记录的表，分区数为6，建立局部索引，并创建数据
+//        PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//创建一个10M记录的表，分区数为6，建立局部索引，并创建数据
 //        long endTimeCreateAndInsertRecords = System.currentTimeMillis();
 //        System.out.println("CreateAndInsertRecords-Time: "+(endTimeCreateAndInsertRecords - startTimeCreateAndInsertRecords));
 
+        //以追加的方式写入记录
+//        long startTimeInsert1MRecords = System.currentTimeMillis();
+//        PhoenixSQLOperation.insertRecordToTableNamedGeoPointTable();
+//        long endTimeInsert1MRecords = System.currentTimeMillis();
+//        System.out.println("CreateAndInsertRecords-Time: "+(endTimeInsert1MRecords - startTimeInsert1MRecords));
 
         //1.3 查询并写入文件操作，该操作只执行一次，目的是获取表中部分数据并进行查看
 //        long startTimeWriteToFile = System.currentTimeMillis();
@@ -44,16 +49,16 @@ public class GeoHashMainTest {
 //        long endTimeWriteToFile = System.currentTimeMillis();
 //        System.out.println("WriteToFile-Time: "+(endTimeWriteToFile-startTimeWriteToFile));
         //1.4 删除Phoenix二级索引操作，该操作只执行一次
-//        PhoenixSQLOperation.dropIndexOfName();
-////        //1.5 创建二级索引操作，并计时，该操作只执行一次
-//        long startTimeSecondIndex = System.currentTimeMillis();
-//        //PhoenixSQLOperation.createSecondIndexForGeoNameOfTable();
-//        //PhoenixSQLOperation.createSecondIndexForGeoPointTableLWD1MLong();
-//        //PhoenixSQLOperation.createSecondIndexForGeoHashValueBase32OfTable();
-//        //PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable100M();
-//        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
-//        long endTimeSecondIndex = System.currentTimeMillis();
-//        System.out.println("CreateSecondIndex-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
+        PhoenixSQLOperation.dropIndexOfName();
+////////        //1.5 创建二级索引操作，并计时，该操作只执行一次
+        long startTimeSecondIndex = System.currentTimeMillis();
+        //PhoenixSQLOperation.createSecondIndexForGeoNameOfTable();
+        //PhoenixSQLOperation.createSecondIndexForGeoPointTableLWD1MLong();
+        //PhoenixSQLOperation.createSecondIndexForGeoHashValueBase32OfTable();
+        //PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable100M();
+        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
+        long endTimeSecondIndex = System.currentTimeMillis();
+        System.out.println("CreateSecondIndex-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
 
         //Phoenix二级索引测试，针对geoHashValueLong列，类型为BigInt
 //        long startTimeSelectByGeoID = System.currentTimeMillis();
@@ -91,11 +96,12 @@ public class GeoHashMainTest {
         r = rQS1_1min;
 //        double xLongitudeBLFly = -160.23541;
 //        //double yLatitudeBLFly = -85.25489;
-//        double deltaXFly = 1.21456;
-//        double deltaYFly = 1.45183;
+//        double deltaXFly = 5;
+//        double deltaYFly = 5;
 ////        RectangleQueryScope rQSFly = new RectangleQueryScope();
 ////        rQSFly.RectangleQueryScopeDelta(xLongitudeBLFly,yLatitudeBLFly,deltaXFly,deltaYFly);
-//        for(int a=0;a<40;a++){
+//        int count1 = 0;
+//        for(int a=0;a<30;a++){
 //            xLongitudeBLFly+=8;
 //            double yLatitudeBLFly = -85.25489;
 //            for(int b=0;b<30;b++){
@@ -107,7 +113,7 @@ public class GeoHashMainTest {
 //                    count++;
 //                    DecimalFormat df = new DecimalFormat("#.0000");
 //                    double areaRatio = Double.parseDouble(df.format(areaRatioTemp));
-//                    System.out.println("-----------------------------------------------------------------");
+//                    System.out.println("---------------------------"+count1+"--------------------------------------");
 //                    long startTimeQueryWithGeoHashAndSecondFiltering10M = System.currentTimeMillis();
 //                    ArrayList<GeoPointTableRecordSimple> gPTRWithGeoHashAndSecondFiltering10M =
 //                            PhoenixSQLOperation.selectAndQueryRecordsWithGeoHashIndexAreaRatioAndSecondFilteringUnionAllFrom10MTable(rQSFly, areaRatio);
@@ -137,13 +143,14 @@ public class GeoHashMainTest {
 //                            + gGeoHashLongs.size() + "#" + gPTRWithGeoHashAndSecondFiltering10M.size()
 //                            + "%" + gPTRWithGeoHashAndDirectJudge10M.size() + "%" + gPTRWithGeoHashAndUDFFunction10M.size());
 ////////                //相关结果写入文件操作，便于MatLab画图
-////                String strSDTGeoHashThreeAll = count + " "
-////                        + ((endTimeQueryWithGeoHashAndSecondFiltering10M - startTimeQueryWithGeoHashAndSecondFiltering10M) / 1000.0 + " ")
-////                        + ((endTimeQueryWithGeoHashAndDirectJudge10M - startTimeQueryWithGeoHashAndDirectJudge10M) / 1000.0 + " ")
-////                        + ((endTimeQueryWithGeoHashAndUDFFunction10M - startTimeQueryWithGeoHashAndUDFFunction10M) / 1000.0) + "\n";
-////                File fileSDTGeoHashThreeAll = new File("rQSFlySDTGeoHashSDU1200SumMergeAreaRatio10M0.txt");
-////                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
+//                String strSDTGeoHashThreeAll = count + " "
+//                        + ((endTimeQueryWithGeoHashAndSecondFiltering10M - startTimeQueryWithGeoHashAndSecondFiltering10M) / 1000.0 + " ")
+//                        + ((endTimeQueryWithGeoHashAndDirectJudge10M - startTimeQueryWithGeoHashAndDirectJudge10M) / 1000.0 + " ")
+//                        + ((endTimeQueryWithGeoHashAndUDFFunction10M - startTimeQueryWithGeoHashAndUDFFunction10M) / 1000.0) + "\n";
+//                File fileSDTGeoHashThreeAll = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M2.txt");
+//                FileUtil.writeToFile(fileSDTGeoHashThreeAll, strSDTGeoHashThreeAll);
 //                }
+//                count1++;
 //            }
 //        }
 //        for(int j=0;j<1000;j++) {
