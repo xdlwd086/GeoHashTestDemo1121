@@ -7,7 +7,10 @@ import cc.xidian.GeoObject.RectangleQueryScope;
 import cc.xidian.geoUtil.FileUtil;
 import cc.xidian.geoUtil.RandomOperation;
 import cc.xidian.geoUtil.RandomString;
+import org.apache.phoenix.jdbc.PhoenixConnection;
+import org.apache.phoenix.jdbc.PhoenixStatement;
 
+import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
@@ -56,13 +59,13 @@ public class PhoenixSQLOperation {
      */
     public static void createAndInsertRecordToTableNamedGeoPointTable10M(){
         //1、创建表操作
-        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple90MGR12Global("
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple60MGR15Global("
                 +"geoID    Integer not null Primary key,"
                 +"geoName    varchar(32),"
                 +"xLongitude    double,"
                 +"yLatitude    double,"
                 +"geoHashValueLong    bigint "
-                +")SALT_BUCKETS=12";
+                +")SALT_BUCKETS=15";
         long startTimeCreateTable = System.currentTimeMillis();
         createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
         long endTimeCreateTable = System.currentTimeMillis();
@@ -70,12 +73,12 @@ public class PhoenixSQLOperation {
 //        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
         long endTimeCreateIndex = System.currentTimeMillis();
         //2、插入数据操作
-        String sqlInsert = "upsert into GeoPointTableLWDSimple90MGR12Global values(?,?,?,?,?)";
+        String sqlInsert = "upsert into GeoPointTableLWDSimple60MGR15Global values(?,?,?,?,?)";
         long startTimeInsertRecord = System.currentTimeMillis();
         insertRecordToTableNamedGeoPointTable(sqlInsert);
         long endTimeInsertRecord  = System.currentTimeMillis();
         //3、查询操作
-        String sqlSelect = "select * from GeoPointTableLWDSimple90MGR12Global where geoID > 89999000";
+        String sqlSelect = "select * from GeoPointTableLWDSimple60MGR15Global where geoID > 59999000";
         long startTimeSelectHaveResults = System.currentTimeMillis();
         selectHaveResults(sqlSelect);
         long endTimeSelectHaveResults = System.currentTimeMillis();
@@ -121,7 +124,7 @@ public class PhoenixSQLOperation {
      * 删除表操作很少执行
      */
     public static void dropTableNamedGeoPointTable(){
-        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWDSimple90MGR45Global";
+        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWDSimple20MGR12GlobalIF";
         try {
             stmt.executeUpdate(sqlDropTableNamedGeoPointTable);
         } catch (SQLException e) {
@@ -190,9 +193,9 @@ public class PhoenixSQLOperation {
         try {
             PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
             //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
-            for(int j=0;j<450;j++){
-                for(int i=0;i<200000;i++){
-                    int geoID = (i+200000*j);
+            for(int j=0;j<200;j++){
+                for(int i=0;i<300000;i++){
+                    int geoID = (i+300000*j);
                     pst.setInt(1,geoID);
                     String geoName = RandomOperation.RandomStringSimple(6);
                     pst.setString(2, geoName);
@@ -1707,9 +1710,18 @@ public class PhoenixSQLOperation {
 //        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MRDefaultGlobal on GeoPointTableLWDSimple10MGRDefaultGlobal(geoHashValueLong) " +
 //                "SALT_BUCKETS=6";
         //String sqlCreateIndex = "Create local index idx_geoHashValueLong_lwd_Local_10MRegion on GeoPointTableLWDSimple10MGRegion(geoHashValueLong) ";
+//        Properties propsUDF = new Properties();
+//        propsUDF.setProperty("phoenix.functions.allowUserDefinedFunctions", "true");
         try {
+//            Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");// 加载Mysql数据驱动
+//            String url = "jdbc:phoenix:cloudgis1.com:2181:/hbase-unsecure";//phoenix连接URL
+//            //PhoenixConnection pConn = DriverManager.getConnection(url,propsUDF);// 创建数据连接
+//            //conn.setAutoCommit(false);
+//            PhoenixConnection pConn = new PhoenixConnection(url,propsUDF);
+//            PhoenixStatement stmtIndex = pConn.createStatement();
+            stmt.setQueryTimeout(0);
             stmt.executeUpdate(sqlCreateIndex);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
