@@ -28,7 +28,7 @@ public class GeoPointTableRecordSimple {
         this.geoHashValueLong = geoHashValueLong;
     }
     public String toString(){
-        return geoID+"#"+geoName+"#"+xLongitude+","+yLatitude+"#"+geoHashValueLong;
+        return geoID+","+geoName+","+xLongitude+","+yLatitude+","+geoHashValueLong;
     }
 
 }

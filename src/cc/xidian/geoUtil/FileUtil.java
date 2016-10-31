@@ -34,6 +34,7 @@ public class FileUtil {
      */
     public static void getFileSDTGeoHashSDUMTAverageFromFileInitial(File fileSDTGeoHashSDUMT,File fileSDTGeoHashSDUMTAverage)throws Exception{
         SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[1200];
+        int sum = 110;
         //初始化操作
         for(int i=1;i<=29;i++){
             sDTArray[i] = new SearchDepthAndTimeOfSDU(i);
@@ -60,11 +61,11 @@ public class FileUtil {
         for(int i=1;i<=29;i++){
             sDTArray[i].searchDepth = i;
             //三个时间求和后取平均值，并保留小数点后三位数据
-            sDTArray[i].timeOfPhoenixGeoHashSecondFiltering /= 1000;
+            sDTArray[i].timeOfPhoenixGeoHashSecondFiltering /= sum;
             sDTArray[i].timeOfPhoenixGeoHashSecondFiltering = Double.parseDouble(df.format(sDTArray[i].timeOfPhoenixGeoHashSecondFiltering));
-            sDTArray[i].timeOfPhoenixGeoHashDirectJudge /= 1000;
+            sDTArray[i].timeOfPhoenixGeoHashDirectJudge /= sum;
             sDTArray[i].timeOfPhoenixGeoHashDirectJudge = Double.parseDouble(df.format(sDTArray[i].timeOfPhoenixGeoHashDirectJudge));
-            sDTArray[i].timeOfPhoenixGeoHashUDFFunction /= 1000;
+            sDTArray[i].timeOfPhoenixGeoHashUDFFunction /= sum;
             sDTArray[i].timeOfPhoenixGeoHashUDFFunction = Double.parseDouble(df.format(sDTArray[i].timeOfPhoenixGeoHashUDFFunction));
             System.out.println(sDTArray[i].toString());//输出打印操作
             //写入文件操作

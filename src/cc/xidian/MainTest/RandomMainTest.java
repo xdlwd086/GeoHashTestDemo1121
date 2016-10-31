@@ -51,7 +51,7 @@ public class RandomMainTest {
 
         //BitSet测试
 
-        File fileSDTGeoHashSDUMT = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M2.txt");
+        File fileSDTGeoHashSDUMT = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M20.txt");
         File fileSDTGeoHashSDTMTAverage = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatioSimple30M2.txt");
         FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
 //        double d = 12.56397*100000;

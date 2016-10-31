@@ -620,33 +620,6 @@ public class GeoHashConversion {
                 resultSet.push(geoHashValueMinMax);
             }
         }
-//        System.out.println(rPArrayArray.size());//输出得到的前缀数组的个数
-//        int indexStack = 0;
-//        for(RectanglePrefix[] rPArray : rPArrayArray){
-//            for(RectanglePrefix r:rPArray){
-//                long[] geoHashValueMinMax = new long[2];
-//                geoHashValueMinMax[0] = r.prefix;
-//                geoHashValueMinMax[1] = (0xffffffffffffffffL>>>r.length)+r.prefix;
-//
-//                if(resultSet.empty()) {
-//                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
-//                }else{
-//                    long[] geoHashValueMinMaxPop = resultSet.pop();
-//                    //相邻GeoHash段可以合并的条件：两个段组成的区域必须小于全球区域且相邻geoHash值相差为1
-//                    if(geoHashValueMinMaxPop[0]!=0x8000000000000000L&&geoHashValueMinMaxPop[0]!=0xffffffffffffffffL
-//                            &&(geoHashValueMinMaxPop[0]-1)==geoHashValueMinMax[1]){
-//                        geoHashValueMinMax[1] = geoHashValueMinMaxPop[1];
-//                    }else{
-//                        resultSetArray.get(indexStack).push(geoHashValueMinMaxPop);//若不合并，则将弹出的元素重新放到结果栈中
-//                    }
-//                    resultSetArray.get(indexStack).push(geoHashValueMinMax);
-//               }
-//            }
-//            indexStack++;
-//        }
-        //for(Stack<long[]> sLongs: resultSetArray){
-
-        //}
         return resultSet;
     }
     /**
