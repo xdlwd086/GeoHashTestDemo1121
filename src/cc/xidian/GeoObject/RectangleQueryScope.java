@@ -12,8 +12,6 @@ public class RectangleQueryScope {
     public double yLatitudeTR;
     public double deltaX;
     public double deltaY;
-    //public String geoHashValueBL;
-    //public String geoHashValueTR;
 
     public RectangleQueryScope(){
         this.xLongitudeBL = 0;
@@ -22,8 +20,6 @@ public class RectangleQueryScope {
         this.deltaY = 0;
         this.xLongitudeTR = this.xLongitudeBL + this.deltaX;
         this.yLatitudeTR = this.yLatitudeBL + this.deltaY;
-        //this.geoHashValueBL = "";
-        //this.geoHashValueTR = "";
     }
     public void RectangleQueryScopeDelta(double xLongitudeBL,double yLatitudeBL,double deltaX,double deltaY){
         this.xLongitudeBL = xLongitudeBL;
@@ -32,8 +28,6 @@ public class RectangleQueryScope {
         this.deltaY = deltaY;
         this.xLongitudeTR = xLongitudeBL + deltaX;
         this.yLatitudeTR = yLatitudeBL +deltaY;
-        //this.geoHashValueBL = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeBL,yLatitudeBL);
-        //this.geoHashValueTR = GeoHashConversion.encodeGeoHashFromLonAndLat((xLongitudeBL+deltaX),(yLatitudeBL+deltaY));
     }
     public RectangleQueryScope(double xLongitudeBL,double yLatitudeBL,double xLongitudeTR,double yLatitudeTR){
         this.xLongitudeBL = xLongitudeBL;
@@ -42,8 +36,6 @@ public class RectangleQueryScope {
         this.deltaY = yLatitudeTR - yLatitudeBL;
         this.xLongitudeTR = xLongitudeTR;
         this.yLatitudeTR = yLatitudeTR;
-        //this.geoHashValueBL = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeBL,yLatitudeBL);
-        //this.geoHashValueTR = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeTR,yLatitudeTR);
     }
     public boolean isContainPoint(double xLongitude,double yLatitude){
         return (xLongitude>=this.xLongitudeBL&&xLongitude<=this.xLongitudeTR&&yLatitude>=yLatitudeBL&&yLatitude<=yLatitudeTR);

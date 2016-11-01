@@ -31,5 +31,4 @@ public class GeoPointTableRecord {
     public String toString(){
         return geoID+"#"+geoName+"#"+xLongitude+","+yLatitude+"#"+geoHashValue+"#"+geoHashValueLong;
     }
-    //public String toString()
 }

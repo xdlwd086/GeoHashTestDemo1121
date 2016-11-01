@@ -23,7 +23,7 @@ import java.util.Stack;
 public class PhoenixSQLOperation {
     public static Connection conn;
     public static Statement stmt;
-    public static String tableName = "GeoPointTableLWDSimple100MGR15Global";
+    public static String tableName = "GeoPointTableLWDSimple200MGR30Global";
     //public static int count;
 
 //    public static void createAndInsertRecordToTableNamedGeoPointTable(){
@@ -190,7 +190,6 @@ public class PhoenixSQLOperation {
     }
 
     public static void insertRecordToTableNamedGeoPointTable(String sqlInsertRecordToTableNamedGeoPointTable){
-        //File fileGeoPointTableLWD = new File("GeoPointTableLWDSimple10MGR6.txt");
         try {
             PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
             //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
@@ -204,19 +203,9 @@ public class PhoenixSQLOperation {
                     pst.setDouble(3,xLongitudeTemp );
                     double yLatitudeTemp = RandomOperation.RandomDouble(-90.0, 90.0);
                     pst.setDouble(4, yLatitudeTemp);
-                    //String geoHashValueTemp = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeTemp, yLatitudeTemp);
-                    //pst.setString(5, geoHashValueTemp);
                     long geoHashValueLongTemp = GeoHashConversion.LongLatToHash(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
-                    //long geoHashValueLongTemp = (i+100000*j)+200;
-                    //String strBinaryGeoHashTemp = GeoHashConversion.encodeGeoHashFromLonAndLatBinaryString(xLongitudeTemp,yLatitudeTemp);
                     pst.setLong(5, geoHashValueLongTemp);
                     pst.addBatch();
-                    //GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitudeTemp,yLatitudeTemp,geoHashValueLongTemp);
-//                    try{
-//                        FileUtil.writeGeoPointTableRecordsToFile(fileGeoPointTableLWD,g.toString());
-//                    }catch (Exception e){
-//                        e.printStackTrace();
-//                    }
                 }
                 pst.executeBatch();
                 conn.commit();
@@ -244,7 +233,6 @@ public class PhoenixSQLOperation {
         }
     }
     public static void insertRecordToTableNamedGeoPointTable(){
-        //File fileGeoPointTableLWD = new File("GeoPointTableLWDSimple10MGR6.txt");
         String sqlInsertRecordToTableNamedGeoPointTable = "upsert into GeoPointTableLWDSimple20MGR12Global values(?,?,?,?,?)";
         try {
             PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
@@ -259,20 +247,9 @@ public class PhoenixSQLOperation {
                     pst.setDouble(3,xLongitudeTemp );
                     double yLatitudeTemp = RandomOperation.RandomDouble(-90.0, 90.0);
                     pst.setDouble(4, yLatitudeTemp);
-                    //String geoHashValueTemp = GeoHashConversion.encodeGeoHashFromLonAndLat(xLongitudeTemp, yLatitudeTemp);
-                    //pst.setString(5, geoHashValueTemp);
                     long geoHashValueLongTemp = GeoHashConversion.LongLatToHash(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
-                    //long geoHashValueLongTemp = (i+100000*j)+200;
-                    //String strBinaryGeoHashTemp = GeoHashConversion.encodeGeoHashFromLonAndLatBinaryString(xLongitudeTemp,yLatitudeTemp);
                     pst.setLong(5, geoHashValueLongTemp);
                     pst.addBatch();
-                    //GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitudeTemp,yLatitudeTemp,geoHashValueLongTemp);
-//                    try{
-//                        FileUtil.writeGeoPointTableRecordsToFile(fileGeoPointTableLWD,g.toString());
-//                    }catch (Exception e){
-//                        e.printStackTrace();
-//                    }
-
                 }
                 pst.executeBatch();
                 conn.commit();
@@ -1006,7 +983,6 @@ public class PhoenixSQLOperation {
                 String geoName = rs.getString("geoName");
                 double xLongitude = rs.getDouble("xLongitude");
                 double yLatitude = rs.getDouble("yLatitude");
-                //String geoHashValue = rs.getString("geoHashValue");
                 long geoHashValueLong = rs.getLong("geoHashValueLong");
                 GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
                 geoPointTableRecords.add(g);
@@ -1730,13 +1706,6 @@ public class PhoenixSQLOperation {
 //        Properties propsUDF = new Properties();
 //        propsUDF.setProperty("phoenix.functions.allowUserDefinedFunctions", "true");
         try {
-//            Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");// 加载Mysql数据驱动
-//            String url = "jdbc:phoenix:cloudgis1.com:2181:/hbase-unsecure";//phoenix连接URL
-//            //PhoenixConnection pConn = DriverManager.getConnection(url,propsUDF);// 创建数据连接
-//            //conn.setAutoCommit(false);
-//            PhoenixConnection pConn = new PhoenixConnection(url,propsUDF);
-//            PhoenixStatement stmtIndex = pConn.createStatement();
-            //stmt.setQueryTimeout(0);
             stmt.executeUpdate(sqlCreateIndex);
         } catch (Exception e) {
             // TODO Auto-generated catch block

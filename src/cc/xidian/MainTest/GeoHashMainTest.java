@@ -101,8 +101,8 @@ public class GeoHashMainTest {
 //        r = rQS1_1min;
         double xLongitudeBLFly = -160.23541;
         //double yLatitudeBLFly = -85.25489;
-        double deltaXFly = 5;
-        double deltaYFly = 5;
+        double deltaXFly = 0.5;
+        double deltaYFly = 0.25;
 //        RectangleQueryScope rQSFly = new RectangleQueryScope();
 //        rQSFly.RectangleQueryScopeDelta(xLongitudeBLFly,yLatitudeBLFly,deltaXFly,deltaYFly);
         int count1 = 0;

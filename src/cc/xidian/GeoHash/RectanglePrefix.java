@@ -5,7 +5,6 @@ package cc.xidian.GeoHash;
  */
 public class RectanglePrefix {
     public long prefix;//前缀码
-    //public String strPrefix;//字符串类型的前缀码
     public int length;//前缀码的位数，该位数为前缀码的二进制位数
 
     public RectanglePrefix(){

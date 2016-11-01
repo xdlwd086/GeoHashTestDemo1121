@@ -34,7 +34,7 @@ public class FileUtil {
      */
     public static void getFileSDTGeoHashSDUMTAverageFromFileInitial(File fileSDTGeoHashSDUMT,File fileSDTGeoHashSDUMTAverage)throws Exception{
         SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[1200];
-        int sum = 110;
+        int sum = 100;
         //初始化操作
         for(int i=1;i<=29;i++){
             sDTArray[i] = new SearchDepthAndTimeOfSDU(i);

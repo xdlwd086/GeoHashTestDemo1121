@@ -8,7 +8,6 @@ public class GeoPointTableRecordSimple {
     public String geoName;//地名，随机字符串，长度为6
     public double xLongitude;//经度，保留小数点后4位
     public double yLatitude;//纬度，保留小数点后4位
-    //public String geoHashValue;//GeoHash值,Base32编码
     public long geoHashValueLong;//GeoHash值，long类型,64位二进制位
 
     public GeoPointTableRecordSimple(){
@@ -16,7 +15,6 @@ public class GeoPointTableRecordSimple {
         this.geoName = "";
         this.xLongitude = 0;
         this.yLatitude = 0;
-        //this.geoHashValue = "";
         this.geoHashValueLong = 0;
     }
     public GeoPointTableRecordSimple(int geoID, String geoName, double xLongitude, double yLatitude, long geoHashValueLong){
@@ -24,7 +22,6 @@ public class GeoPointTableRecordSimple {
         this.geoName = geoName;
         this.xLongitude = xLongitude;
         this.yLatitude = yLatitude;
-        //this.geoHashValue = geoHashValue;
         this.geoHashValueLong = geoHashValueLong;
     }
     public String toString(){
