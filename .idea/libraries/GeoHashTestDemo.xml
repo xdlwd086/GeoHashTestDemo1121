@@ -2,6 +2,7 @@
   <library name="GeoHashTestDemo">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/phoenix-4.4.0-HBase-0.98-client.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jts-1.13.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

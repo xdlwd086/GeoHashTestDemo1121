@@ -1,6 +1,7 @@
 package cc.xidian.geoUtil;
 
 import cc.xidian.GeoHash.GeoHashConversion;
+import cc.xidian.GeoObject.GDELTEventRecordSimpleA;
 import cc.xidian.GeoObject.SearchDepthAndTimeOfSDU;
 
 import java.io.*;
@@ -34,7 +35,7 @@ public class FileUtil {
      */
     public static void getFileSDTGeoHashSDUMTAverageFromFileInitial(File fileSDTGeoHashSDUMT,File fileSDTGeoHashSDUMTAverage)throws Exception{
         SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[1200];
-        int sum = 100;
+        int sum = 110;
         //初始化操作
         for(int i=1;i<=29;i++){
             sDTArray[i] = new SearchDepthAndTimeOfSDU(i);
@@ -75,5 +76,98 @@ public class FileUtil {
             bufferedWriter.close();
             fileWriter.close();
         }
+    }
+    /**
+     * 函数功能：文本处理，求和并平均，编写时间：2016年9月26日23:18:39
+     * @param fileGDELTEventDataSource 原始文件
+     * @param fileGDELTEventRecordsSimpleAs 结果文件
+     * @throws Exception
+     */
+    public static void getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(File fileGDELTEventDataSource,File fileGDELTEventRecordsSimpleAs)throws Exception{
+        int count = 0;
+        FileWriter fileWriter = new FileWriter(fileGDELTEventRecordsSimpleAs,true);//以追加方式写入文件
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        //if(fileGDELTEventDataSource.exists()&&fileGDELTEventDataSource.isFile()){
+            InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileGDELTEventDataSource),"UTF-8");
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            String strLine;
+            String[] strLineArray;
+            while((strLine = bufferedReader.readLine())!=null) {
+                strLineArray = strLine.split("\t");//获取每一行的各个字段内容
+                GDELTEventRecordSimpleA g = new GDELTEventRecordSimpleA();
+                if (!strLineArray[strLineArray.length - 1].isEmpty() && !strLineArray[strLineArray.length - 2].isEmpty() && !strLineArray[strLineArray.length - 3].isEmpty() &&
+                        !strLineArray[strLineArray.length - 4].isEmpty() && !strLineArray[strLineArray.length - 5].isEmpty() && !strLineArray[strLineArray.length - 6].isEmpty() &&
+                        !strLineArray[strLineArray.length - 7].isEmpty() && !strLineArray[strLineArray.length - 9].isEmpty() && !strLineArray[0].isEmpty() &&
+                        !strLineArray[1].isEmpty() && !strLineArray[7].isEmpty()) {
+                    g.globalEventID = Integer.parseInt(strLineArray[0]);
+                    g.sqlDate = Integer.parseInt(strLineArray[1]);
+                    g.actor1Code = strLineArray[5];
+                    g.actor1Name = strLineArray[6];
+                    g.actor1CountryCode = strLineArray[7];
+
+                    g.actionGeo_Type = Integer.parseInt(strLineArray[strLineArray.length - 9]);
+                    //g.actionGeo_FullName = strLineArray[strLineArray.length-8];
+                    g.actionGeo_CountryCode = strLineArray[strLineArray.length - 7];
+                    g.actionGeo_ADM1Code = strLineArray[strLineArray.length-6];
+                    g.actionGeo_Lat = Double.parseDouble(strLineArray[strLineArray.length - 5]);
+                    g.actionGeo_Long = Double.parseDouble(strLineArray[strLineArray.length - 4]);
+                    g.actionGeo_GeoHashValue = GeoHashConversion.LongLatToHash(g.actionGeo_Long,g.actionGeo_Lat);//计算GeoHash值，64位long类型
+                    g.actionGeo_FeatureID = strLineArray[strLineArray.length-3];
+                    g.dateAdded = Integer.parseInt(strLineArray[strLineArray.length - 2]);
+                    g.sourceURL = strLineArray[strLineArray.length - 1];
+
+                    System.out.println(count+","+g.toString());
+                    bufferedWriter.write(g.toString() + "\n");
+                    count++;
+                }
+            }
+            bufferedReader.close();
+            inputStreamReader.close();
+            bufferedWriter.close();
+            fileWriter.close();
+    }
+
+    public static void getFileGDELTEventRecordSimpleAsSumFromFileGDELTEventRecordSimpleAs(File fileGDELTEventRecordSimpleAs,File fileGDELTEventRecordsSimpleAsSum)throws Exception{
+        int count = 0;
+        FileWriter fileWriter = new FileWriter(fileGDELTEventRecordsSimpleAsSum,true);//以追加方式写入文件
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        //if(fileGDELTEventDataSource.exists()&&fileGDELTEventDataSource.isFile()){
+        InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileGDELTEventRecordSimpleAs),"UTF-8");
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String strLine;
+        String[] strLineArray;
+        while((strLine = bufferedReader.readLine())!=null) {
+//            strLineArray = strLine.split("\t");//获取每一行的各个字段内容
+//            GDELTEventRecordSimpleA g = new GDELTEventRecordSimpleA();
+//            if (!strLineArray[strLineArray.length - 1].isEmpty() && !strLineArray[strLineArray.length - 2].isEmpty() && !strLineArray[strLineArray.length - 3].isEmpty() &&
+//                    !strLineArray[strLineArray.length - 4].isEmpty() && !strLineArray[strLineArray.length - 5].isEmpty() && !strLineArray[strLineArray.length - 6].isEmpty() &&
+//                    !strLineArray[strLineArray.length - 7].isEmpty() && !strLineArray[strLineArray.length - 9].isEmpty() && !strLineArray[0].isEmpty() &&
+//                    !strLineArray[1].isEmpty() && !strLineArray[7].isEmpty()) {
+//                g.globalEventID = Integer.parseInt(strLineArray[0]);
+//                g.sqlDate = Integer.parseInt(strLineArray[1]);
+//                g.actor1Code = strLineArray[5];
+//                g.actor1Name = strLineArray[6];
+//                g.actor1CountryCode = strLineArray[7];
+//
+//                g.actionGeo_Type = Integer.parseInt(strLineArray[strLineArray.length - 9]);
+//                //g.actionGeo_FullName = strLineArray[strLineArray.length-8];
+//                g.actionGeo_CountryCode = strLineArray[strLineArray.length - 7];
+//                g.actionGeo_ADM1Code = strLineArray[strLineArray.length-6];
+//                g.actionGeo_Lat = Double.parseDouble(strLineArray[strLineArray.length - 5]);
+//                g.actionGeo_Long = Double.parseDouble(strLineArray[strLineArray.length - 4]);
+//                g.actionGeo_GeoHashValue = GeoHashConversion.LongLatToHash(g.actionGeo_Long,g.actionGeo_Lat);//计算GeoHash值，64位long类型
+//                g.actionGeo_FeatureID = strLineArray[strLineArray.length-3];
+//                g.dateAdded = Integer.parseInt(strLineArray[strLineArray.length - 2]);
+//                g.sourceURL = strLineArray[strLineArray.length - 1];
+//
+                System.out.println(count+","+strLine);
+                bufferedWriter.write(strLine + "\n");
+                count++;
+            //}
+        }
+        bufferedReader.close();
+        inputStreamReader.close();
+        bufferedWriter.close();
+        fileWriter.close();
     }
 }

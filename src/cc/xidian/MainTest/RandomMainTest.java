@@ -4,6 +4,7 @@ import cc.xidian.GeoHash.GeoHashConversion;
 import cc.xidian.GeoObject.CircleQueryScope;
 import cc.xidian.geoUtil.FileUtil;
 import cc.xidian.geoUtil.RandomOperation;
+import com.vividsolutions.jts.geom.Polygon;
 
 import java.io.File;
 import java.util.BitSet;
@@ -50,11 +51,22 @@ public class RandomMainTest {
 //        System.out.println(cQS.isContainPoint(xLongitudeAny,yLatitudeAny));
 
         //BitSet测试
-
-        File fileSDTGeoHashSDUMT = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M20.txt");
-        File fileSDTGeoHashSDTMTAverage = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatioSimple30M2.txt");
-        FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
+        //for (int i = 1101;i<=1109; i++){
+//            File fileSDTGeoHashSDUMT = new File("data"+File.separator+"2016"+i+".export.CSV");
+//            File fileSDTGeoHashSDUMT = new File("20130401_20131231.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
+//            File fileSDTGeoHashSDTMTAverage = new File("20130401_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
+//            FileUtil.getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
+       // }
+//        File fileSDTGeoHashSDUMT = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M21.txt");
+//        File fileSDTGeoHashSDTMTAverage = new File("rQSFlySDTGeoHashSDU900SumMergeResult30M21.txt");
+//        FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
 //        double d = 12.56397*100000;
 //        System.out.println(d);
+
+        File fileGDELTEventRecordSimpleAs = new File("20160101_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
+        File fileGDELTEventRecordSimpleAsSum = new File("20130401_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
+        FileUtil.getFileGDELTEventRecordSimpleAsSumFromFileGDELTEventRecordSimpleAs(fileGDELTEventRecordSimpleAs,fileGDELTEventRecordSimpleAsSum);
+
+        //Polygon g = new Polygon()
     }
 }

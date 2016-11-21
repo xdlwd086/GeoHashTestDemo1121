@@ -1,9 +1,7 @@
 package cc.xidian.PhoenixOperation;
 
 import cc.xidian.GeoHash.GeoHashConversion;
-import cc.xidian.GeoObject.GeoPointTableRecord;
-import cc.xidian.GeoObject.GeoPointTableRecordSimple;
-import cc.xidian.GeoObject.RectangleQueryScope;
+import cc.xidian.GeoObject.*;
 import cc.xidian.geoUtil.FileUtil;
 import cc.xidian.geoUtil.RandomOperation;
 import cc.xidian.geoUtil.RandomString;
@@ -15,6 +13,7 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Stack;
 
 /**
@@ -23,49 +22,91 @@ import java.util.Stack;
 public class PhoenixSQLOperation {
     public static Connection conn;
     public static Statement stmt;
-    public static String tableName = "GeoPointTableLWDSimple200MGR30Global";
+    public static String tableName = "GeoPointTableLWDSimple200MR30GIGeoHashA";
+    public static String tableNameGDELT = "GDELTEventLWD2016R15GIGeoHashXYTA";
     //public static int count;
 
-//    public static void createAndInsertRecordToTableNamedGeoPointTable(){
-//        //1、创建表操作
-//        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWD1MGS("
-//                +"geoID    Integer not null Primary key,"
-//                +"geoName    varchar(32),"
-//                +"xLongitude    double,"
-//                +"yLatitude    double,"
-//                +"geoHashValue    varchar(32),"
-//                +"geoHashValueLong    bigint "
-//                +")";
-//        long startTimeCreateTable = System.currentTimeMillis();
+    public static void createAndInsertRecordToTableNamedPhoenixHitLWD500B(){
+        //1、创建表操作
+        String sqlDropTable = "Drop table PhoenixHitLWD1000BR6BF";
+//        dropTable(sqlDropTable);
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists PhoenixHitLWD1000BR6BF("
+                +"RowKey    Integer not null Primary key,"
+                +"ValueString1000B    varchar(1000)"
+                +") SALT_BUCKETS=6 ";
+        long startTimeCreateTable = System.currentTimeMillis();
 //        createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
-//        long endTimeCreateTable = System.currentTimeMillis();
-//        //2、插入数据操作
-//        String sqlInsert = "upsert into GeoPointTableLWD1MGS values(?,?,?,?,?,?)";
-//        long startTimeInsertRecord = System.currentTimeMillis();
-//        insertRecordToTableNamedGeoPointTable(sqlInsert);
-//        long endTimeInsertRecord  = System.currentTimeMillis();
-//        //3、查询操作
-//        String sqlSelect = "select * from GeoPointTableLWD1MGS where geoID > 9999000";
-//        long startTimeSelectHaveResults = System.currentTimeMillis();
-//        selectHaveResults(sqlSelect);
-//        long endTimeSelectHaveResults = System.currentTimeMillis();
-//        //4、输出信息
-//        System.out.println("GeoPointTableLWD-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
-//        System.out.println("GeoPointTableLWD-InsertRecord-Time: "+(endTimeInsertRecord - startTimeCreateTable));
-//        System.out.println("GeoPointTableLWD-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
-//    }
+        long endTimeCreateTable = System.currentTimeMillis();
+        //2、插入数据操作
+        String sqlInsert = "upsert into PhoenixHitLWD1000BR6BF values(?,?)";
+        long startTimeInsertRecord = System.currentTimeMillis();
+        insertRecordToTableNamedPhoenixHitLWD1000B(sqlInsert);
+        long endTimeInsertRecord  = System.currentTimeMillis();
+        //3、查询操作
+        String sqlSelect = "select * from PhoenixHitLWD1000BR6BF where RowKey > 19999900";
+        long startTimeSelectHaveResults = System.currentTimeMillis();
+        selectHaveResultsPhoenixHit(sqlSelect);
+        long endTimeSelectHaveResults = System.currentTimeMillis();
+        //4、输出信息
+        System.out.println("PhoenixHitLWD1000BRD-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
+        System.out.println("PhoenixHitLWD1000BRD-InsertRecord-Time: "+(endTimeInsertRecord - startTimeInsertRecord));
+        System.out.println("PhoenixHitLWD1000BRD-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
+    }
 
     /**
      * 函数功能：创建数据记录为5000万的表并随机插入数据
      */
     public static void createAndInsertRecordToTableNamedGeoPointTable10M(){
         //1、创建表操作
-        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple300MGR30Global("
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GeoPointTableLWDSimple100MR15GIGeoHashC("
                 +"geoID    Integer not null Primary key,"
                 +"geoName    varchar(32),"
                 +"xLongitude    double,"
                 +"yLatitude    double,"
                 +"geoHashValueLong    bigint "
+                +")SALT_BUCKETS=15";
+        long startTimeCreateTable = System.currentTimeMillis();
+        createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
+        long endTimeCreateTable = System.currentTimeMillis();
+        long startTimeCreateIndex = System.currentTimeMillis();
+        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
+        long endTimeCreateIndex = System.currentTimeMillis();
+        //2、插入数据操作
+        String sqlInsert = "upsert into GeoPointTableLWDSimpleTest values(?,?,?,?,?)";
+        long startTimeInsertRecord = System.currentTimeMillis();
+//        insertRecordToTableNamedGeoPointTable(sqlInsert);
+        long endTimeInsertRecord  = System.currentTimeMillis();
+        //3、查询操作
+        String sqlSelect = "select * from GeoPointTableLWDSimpleTest";// where geoID > 19999000";
+        long startTimeSelectHaveResults = System.currentTimeMillis();
+//        selectHaveResults(sqlSelect);
+        long endTimeSelectHaveResults = System.currentTimeMillis();
+        //4、输出信息
+        System.out.println("GeoPointTableLWD10M-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
+        System.out.println("GeoPointTableLWD10M-CreateIndex-Time: "+(endTimeCreateIndex - startTimeCreateIndex));
+        System.out.println("GeoPointTableLWD10M-InsertRecord-Time: "+(endTimeInsertRecord - startTimeInsertRecord));
+        System.out.println("GeoPointTableLWD10M-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
+    }
+    /**
+     * 函数功能：创建数据记录为5000万的表并随机插入数据
+     */
+    public static void createAndInsertRecordToTableNamedGDELTEventLWD2016R15A(){
+        //1、创建表操作
+        String sqlCreateTableNamedGeoPointTable = "Create Table if not exists GDELTEventLWD20132014R30GIGeoHashXYTA("
+                +"globalEventID    Integer not null Primary key,"
+                +"sqlDate    Integer,"
+                +"actor1Code    varchar,"
+                +"actor1Name    varchar,"
+                +"actor1CountryCode    varchar, "
+                +"actionGeo_Type    integer,"
+                +"actionGeo_CountryCode    varchar, "
+                +"actionGeo_ADM1Code    varchar,"
+                +"actionGeo_Long    double, "
+                +"actionGeo_Lat    double,"
+                +"actionGeo_GeoHashValue    bigint, "
+                +"actionGeo_FeatureID     varchar,"
+                +"dateAdded     Integer, "
+                +"sourceURL     varchar"
                 +")SALT_BUCKETS=30";
         long startTimeCreateTable = System.currentTimeMillis();
         createTable(sqlCreateTableNamedGeoPointTable);//创建表操作
@@ -74,22 +115,21 @@ public class PhoenixSQLOperation {
         PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
         long endTimeCreateIndex = System.currentTimeMillis();
         //2、插入数据操作
-        String sqlInsert = "upsert into GeoPointTableLWDSimple60MGR15Global values(?,?,?,?,?)";
+        String sqlInsert = "upsert into GDELTEventLWD2016R15A values(?,?,?,?,?)";
         long startTimeInsertRecord = System.currentTimeMillis();
 //        insertRecordToTableNamedGeoPointTable(sqlInsert);
         long endTimeInsertRecord  = System.currentTimeMillis();
         //3、查询操作
-        String sqlSelect = "select * from GeoPointTableLWDSimple60MGR15Global where geoID > 59999000";
+        String sqlSelect = "select * from GDELTEventLWD2016R15A where geoID > 19999000";
         long startTimeSelectHaveResults = System.currentTimeMillis();
 //        selectHaveResults(sqlSelect);
         long endTimeSelectHaveResults = System.currentTimeMillis();
         //4、输出信息
         System.out.println("GeoPointTableLWD10M-CreateTable-Time: "+(endTimeCreateTable - startTimeCreateTable));
         System.out.println("GeoPointTableLWD10M-CreateIndex-Time: "+(endTimeCreateIndex - startTimeCreateIndex));
-        System.out.println("GeoPointTableLWD10M-InsertRecord-Time: "+(endTimeInsertRecord - startTimeCreateTable));
+        System.out.println("GeoPointTableLWD10M-InsertRecord-Time: "+(endTimeInsertRecord - startTimeInsertRecord));
         System.out.println("GeoPointTableLWD10M-SelectOption1-Time: "+(endTimeSelectHaveResults - startTimeSelectHaveResults));
     }
-
     /**
      * 函数功能：创建数据记录为1000万的表并随机插入数据
      */
@@ -125,7 +165,7 @@ public class PhoenixSQLOperation {
      * 删除表操作很少执行
      */
     public static void dropTableNamedGeoPointTable(){
-        String sqlDropTableNamedGeoPointTable = "Drop Table GeoPointTableLWDSimple30MGR15GlobalBLReal";
+        String sqlDropTableNamedGeoPointTable = "Drop Table GEOPOINTTABLELWDSIMPLE200MR30GIGEOHASHA";
         try {
             stmt.executeUpdate(sqlDropTableNamedGeoPointTable);
         } catch (SQLException e) {
@@ -188,14 +228,39 @@ public class PhoenixSQLOperation {
             e.printStackTrace();
         }
     }
-
+    public static void insertRecordToTableNamedPhoenixHitLWD1000B(String sqlInsertRecordToTableNamedGeoPointTable){
+        try {
+            PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
+            //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
+            //for(int j=0;j<200;j++){
+                for(int i=0;i<12000000;i+=100){
+                    int rowKey = (i);
+                    pst.setInt(1,rowKey);
+                    String ValueString1000B = RandomOperation.RandomStringSimple(1000);
+                    pst.setString(2, ValueString1000B);
+//                    double xLongitudeTemp = RandomOperation.RandomDouble(-180.0, 180.0);
+//                    pst.setDouble(3,xLongitudeTemp );
+//                    double yLatitudeTemp = RandomOperation.RandomDouble(-90.0, 90.0);
+//                    pst.setDouble(4, yLatitudeTemp);
+//                    long geoHashValueLongTemp = GeoHashConversion.LongLatToHash(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
+//                    pst.setLong(5, geoHashValueLongTemp);
+                    pst.addBatch();
+                }
+                pst.executeBatch();
+                conn.commit();
+            //}
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
     public static void insertRecordToTableNamedGeoPointTable(String sqlInsertRecordToTableNamedGeoPointTable){
         try {
             PreparedStatement pst = conn.prepareStatement(sqlInsertRecordToTableNamedGeoPointTable);
             //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
-            for(int j=0;j<200;j++){
-                for(int i=0;i<300000;i++){
-                    int geoID = (i+300000*j);
+            //for(int j=0;j<100;j++){
+                for(int i=0;i<50;i++){
+                    int geoID = (i);
                     pst.setInt(1,geoID);
                     String geoName = RandomOperation.RandomStringSimple(6);
                     pst.setString(2, geoName);
@@ -209,7 +274,7 @@ public class PhoenixSQLOperation {
                 }
                 pst.executeBatch();
                 conn.commit();
-            }
+            //}
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -316,6 +381,89 @@ public class PhoenixSQLOperation {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }//执行SQL语句并保存结果
+    }
+    public static void selectHaveResultsPhoenixHit(String sqlSelect){
+        ResultSet rs;
+        try {
+            rs = stmt.executeQuery(sqlSelect);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            while(rs.next()){
+                int rowKey = rs.getInt("rowKey");
+                String valueString1000B = rs.getString("ValueString1000B");
+//                double xLongitude = rs.getDouble("xLongitude");
+//                double yLatitude = rs.getDouble("yLatitude");
+//                //String geoHashValue = rs.getString("geoHashValue");
+//                long geoHashValueLong = rs.getLong("geoHashValueLong");
+//                //GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+//                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                //System.out.println(rowKey+","+valueString1000B);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+    }
+    public static int selectHaveResultsPhoenixHitReturn(String sqlSelect){
+        ResultSet rs;
+        int count = 0;
+        try {
+            rs = stmt.executeQuery(sqlSelect);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+
+            while(rs.next()){
+                count++;
+                int rowKey = rs.getInt("rowKey");
+                String valueString1000B = rs.getString("ValueString1000B");
+//                double xLongitude = rs.getDouble("xLongitude");
+//                double yLatitude = rs.getDouble("yLatitude");
+//                //String geoHashValue = rs.getString("geoHashValue");
+//                long geoHashValueLong = rs.getLong("geoHashValueLong");
+//                //GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+//                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                //System.out.println(rowKey+","+valueString1000B);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return count;
+    }
+    public static int selectHaveResultsPhoenixHitReturnQF(String sqlSelect){
+        ResultSet rs;
+        int count = 0;
+        try {
+            rs = stmt.executeQuery(sqlSelect);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+
+            while(rs.next()){
+                count++;
+                int rowKey = rs.getInt("rowKey");
+                String valueString1000B = rs.getString("str");
+//                double xLongitude = rs.getDouble("xLongitude");
+//                double yLatitude = rs.getDouble("yLatitude");
+//                //String geoHashValue = rs.getString("geoHashValue");
+//                long geoHashValueLong = rs.getLong("geoHashValueLong");
+//                //GeoPointTableRecord g = new GeoPointTableRecord(geoID,geoName,xLongitude,yLatitude,geoHashValue,geoHashValueLong);
+//                GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitude,yLatitude,geoHashValueLong);
+                //System.out.println(rowKey+","+valueString1000B);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return count;
     }
     /**
      * 函数功能：有输出结果的查询操作，并将输出结果集写入文件不通用
@@ -1644,6 +1792,143 @@ public class PhoenixSQLOperation {
     }
 
     /**
+     * 函数功能：Query3.3 GeoHash+UDF函数
+     * @param rQST 矩形查询范围对象
+     * @param geoHashLongQueryResults 面积比率，需要手动设置，以后可能会修改
+     * @return 矩形查询后的记录
+     *
+     */
+    public static ArrayList<GDELTEventRecordSimpleA> selectAndQueryGDELTEventRecordsWithGeoHashIndexAreaRatioAndUDFFunctionAndDateConstraintUnionAll(
+            Stack<long[]> geoHashLongQueryResults,RectangleQueryScopeWithTime rQST){
+        ResultSet rs;//查询结果集
+        //ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
+        ArrayList<GDELTEventRecordSimpleA> gdeltEventRecordSimpleAs = new ArrayList<GDELTEventRecordSimpleA>();
+        //UDF函数操作
+        String sqlDropRectangleQueryUDFFunction = "DROP FUNCTION IF EXISTS RectangleQueryUDFFunction";//删除UDF函数的SQL语句
+        String sqlCreateRectangleQueryUDFFunction = "CREATE FUNCTION RectangleQueryUDFFunction(Double, Double, Varchar) " +
+                "returns Integer as 'cc.xidian.PhoenixOperation.UDFRectangleDemoLWD' " +
+                "using jar 'hdfs://cloudgis/apps/hbase/data/lib/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
+        String sqlUDFConstraint = rQST.rQS.xLongitudeBL+","+rQST.rQS.yLatitudeBL+","+rQST.rQS.xLongitudeTR+","+rQST.rQS.yLatitudeTR;
+        String strUDFFunction = "RectangleQueryUDFFunction(actionGeo_Long,actionGeo_Lat,'"+sqlUDFConstraint+"')=1";
+        String strDateConstraint = "sqlDate between "+rQST.startDateDay+" and "+rQST.endDateDay;
+        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction = "";
+//        String strGeoHashQueryOrBetweenAndAndUDFFunction = "";
+//        String sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint = "";
+        int gLength = geoHashLongQueryResults.size();//获取geoHash段的个数
+        //输出测试
+        //System.out.println(gLength);//输出长度
+        //如果geoHash段个数大于1
+        if(gLength>1){
+            for(int i=0;i<gLength-1;i++){
+                long[] gMinMax = geoHashLongQueryResults.get(i);
+                double[] gMinMaxBL = GeoHashConversion.HashToLongLat(gMinMax[0]);
+                double[] gMinMaxTR = GeoHashConversion.HashToLongLat(gMinMax[1]);
+                RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxBL[0],gMinMaxBL[1],gMinMaxTR[0],gMinMaxTR[1]);
+                //System.out.println("------------------:"+rQSGeoHashMerge.toString());
+                //该包含判断基本无效，因为对geoHash段进行合并操作后，得到的GeoHash段范围很大，被查询范围包含的可能性比较小
+                if(!rQST.rQS.isContainRectangleQueryScope(rQSGeoHashMerge)){
+                    //System.out.println("-------------------:"+rQSGeoHashMerge.toString());
+                    //若不包含，则需要UDF函数二次过滤
+                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode," +
+                            "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_GeoHashValue,actionGeo_FeatureID,dateAdded,sourceURL" +
+                            " from "+tableNameGDELT+" where actionGeo_GeoHashValue between "+ gMinMax[0]+" and "+gMinMax[1]
+                            +" and "+strUDFFunction+" and "+strDateConstraint+" UNION ALL ";
+//                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+//                            +" and "+strUDFFunction+" UNION ALL ";
+//                    //使用or语法的查询语句判断
+//                    strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]+" and "+strUDFFunction + " or ";
+                }else{
+                    //若包含，直接返回GeoHash段查询结果，不需要UDF函数二次过滤。
+                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode," +
+                            "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_GeoHashValue,actionGeo_FeatureID,dateAdded,sourceURL" +
+                            " from "+tableNameGDELT+" where actionGeo_GeoHashValue between "+ gMinMax[0]+" and "+gMinMax[1]
+                            +" and "+strDateConstraint+" UNION ALL ";
+//                    sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                            " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                            "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1]
+//                            +" UNION ALL ";
+//                    //使用or语法的查询语句判断
+//                    strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMax[0]+" and "+gMinMax[1] + " or ";
+                }
+            }
+        }
+        //最后一个geoHash段
+        long[] gMinMaxEnd = geoHashLongQueryResults.get(gLength-1);
+        double[] gMinMaxEndBL = GeoHashConversion.HashToLongLat(gMinMaxEnd[0]);
+        double[] gMinMaxEndTR = GeoHashConversion.HashToLongLat(gMinMaxEnd[1]);
+        RectangleQueryScope rQSGeoHashMerge = new RectangleQueryScope(gMinMaxEndBL[0],gMinMaxEndBL[1],gMinMaxEndTR[0],gMinMaxEndTR[1]);
+        //该包含判断基本无效，因为对geoHash段进行合并操作后，得到的GeoHash段范围很大，被查询范围包含的可能性比较小
+        if(!rQST.rQS.isContainRectangleQueryScope(rQSGeoHashMerge)){
+            //若不包含，则需要UDF函数二次过滤
+            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode," +
+                    "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_GeoHashValue,actionGeo_FeatureID,dateAdded,sourceURL" +
+                    " from "+tableNameGDELT+" where actionGeo_GeoHashValue between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]
+                    +" and "+strUDFFunction+" and "+strDateConstraint;
+//            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strUDFFunction;
+//            //使用or语法的查询语句判断
+//            strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strUDFFunction;
+        }else{
+            //若包含，直接返回GeoHash段查询结果，不需要UDF函数二次过滤。
+            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction += "Select globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode," +
+                    "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_GeoHashValue,actionGeo_FeatureID,dateAdded,sourceURL" +
+                    " from "+tableNameGDELT+" where actionGeo_GeoHashValue between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1]+" and "+strDateConstraint;
+//            sqlGeoHashQueryUnionAllBetweenAndAndUDFFunctionHint += "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                    " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                    "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+//            //使用or语法的查询语句判断
+//            strGeoHashQueryOrBetweenAndAndUDFFunction += "geoHashValueLong between "+ gMinMaxEnd[0]+" and "+gMinMaxEnd[1];
+        }
+        //使用or语法的查询语句判断
+//        String sqlGeoHashQueryOrBetweenAndAndUDFFunction = "Select geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6Global where "+strGeoHashQueryOrBetweenAndAndUDFFunction;
+//        String sqlGeoHashQueryOrBetweenAndAndUDFFunctionHint = "Select /*+ index(GeoPointTableLWDSimple10MGR6GlobalNoInclude idx_geoHashValueLong_lwd_Covered_10MR6GlobalNoInclude) */" +
+//                " geoID,geoName,xLongitude,yLatitude,geoHashValueLong " +
+//                "from GeoPointTableLWDSimple10MGR6GlobalNoInclude where "+strGeoHashQueryOrBetweenAndAndUDFFunction;
+        //打印SQL语句的目的是在Phoenix命令行客户端进行
+        //System.out.println(sqlGeoHashQueryOrBetweenAndAndUDFFunction);
+        //System.out.println(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
+        try {
+            //Statement stmtUDF = conn.createStatement();
+            //stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
+//            stmtUDF.execute(sqlCreateRectangleQueryUDFFunction);
+            rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
+            //此处判断不能用rs.next()，否则最终得到的结果集会少一个，但次出的判断并不能起到作用，程序错误，有待修正
+            if(rs.wasNull()){
+                System.out.println("未找到记录，查询出错！");
+                System.exit(-1);
+            }
+            while(rs.next()){
+                int globalEventID = rs.getInt("globalEventID");
+                int sqlDate = rs.getInt("sqlDate");
+                String actor1Code = rs.getString("actor1Code");
+                String actor1Name = rs.getString("actor1Name");
+                String actor1CountryCode = rs.getString("actor1CountryCode");
+                int actionGeo_Type = rs.getInt("actionGeo_Type");
+                String actionGeo_CountryCode = rs.getString("actionGeo_CountryCode");
+                String actionGeo_ADM1Code = rs.getString("actionGeo_ADM1Code");
+                double actionGeo_Long = rs.getDouble("actionGeo_Long");
+                double actionGeo_Lat = rs.getDouble("actionGeo_Lat");
+                long actionGeo_GeoHashValue = rs.getLong("actionGeo_GeoHashValue");
+                String actionGeo_FeatureID = rs.getString("actionGeo_FeatureID");
+                int dateAdded = rs.getInt("dateAdded");
+                String sourceURL = rs.getString("sourceURL");
+
+                GDELTEventRecordSimpleA gd = new GDELTEventRecordSimpleA(globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode,
+                        actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_GeoHashValue,actionGeo_FeatureID,dateAdded,sourceURL);
+                gdeltEventRecordSimpleAs.add(gd);
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//执行SQL语句并保存结果
+        return gdeltEventRecordSimpleAs;
+    }
+
+    /**
      * 函数功能：构建二级索引，该函数只执行一次
      */
 //    public static void createSecondIndexForGeoPointTableLWD1MLongXY(){
@@ -1696,10 +1981,15 @@ public class PhoenixSQLOperation {
      */
     public static void createSecondIndexHintForGeoHashValueLongOfTable(){
         //对GeoHashValue列构建二级索引的SQL语句，不区分大小写，SQL语句
-        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_300MR30Global on GeoPointTableLWDSimple300MGR30Global(geoHashValueLong) " +
-                "include(geoID,geoName,xLongitude,yLatitude) SALT_BUCKETS=30";
-//        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_NoInclude_90MR12Global on GeoPointTableLWDSimple90MGR12Global(geoHashValueLong) " +
-//                " SALT_BUCKETS=12";
+//        String sqlCreateIndex = "Create index idx_geoHashValue_lwd_Covered_GDELTEvent2016R15 on GDELTEventLWD2016R15GIGeoHashA(actionGeo_GeoHashValue) " +
+//                "include(globalEventID,sqlDate,actor1Code,actor1Name,actor1CountryCode," +
+//                "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_Long,actionGeo_Lat,actionGeo_FeatureID,dateAdded,sourceURL) SALT_BUCKETS=15";
+//        String sqlCreateIndex = "Create index idx_geoHashValueXYT_lwd_Covered_GDELTEvent20132014R30A on GDELTEventLWD20132014R30GIGeoHashXYTA(actionGeo_GeoHashValue,actionGeo_Long,actionGeo_Lat,sqlDate) " +
+//                "include(globalEventID,actor1Code,actor1Name,actor1CountryCode," +
+//                "actionGeo_Type,actionGeo_CountryCode,actionGeo_ADM1Code,actionGeo_FeatureID,dateAdded,sourceURL) SALT_BUCKETS=30";
+        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_100MR15GIC on GeoPointTableLWDSimple100MR15GIGeoHashC(geoHashValueLong) " +
+                "include(geoID,geoName,xLongitude,yLatitude)" +
+                " SALT_BUCKETS=15";
 //        String sqlCreateIndex = "Create index idx_geoHashValueLong_lwd_Covered_10MRDefaultGlobal on GeoPointTableLWDSimple10MGRDefaultGlobal(geoHashValueLong) " +
 //                "SALT_BUCKETS=6";
         //String sqlCreateIndex = "Create local index idx_geoHashValueLong_lwd_Local_10MRegion on GeoPointTableLWDSimple10MGRegion(geoHashValueLong) ";
@@ -1749,7 +2039,7 @@ public class PhoenixSQLOperation {
      * 函数功能：删除二级索引，该函数只执行一次，修改时，要注意
      */
     public static void dropIndexOfName(){
-        String sqlDropIndexOfName = "Drop index idx_geoHashValueLong_lwd_Covered_30MR15Global on GeoPointTableLWDSimple30MGR15Global";
+        String sqlDropIndexOfName = "Drop index idx_geoHashValueLong_lwd_Covered_200MR12GlobalIndex on GeoPointTableLWDSimple20MGR12GlobalIndex";
 //        String sqlDropIndexOfName = "Drop index idx_geoHashValueLong_lwd_NoInclude_90MR12Global on GeoPointTableLWDSimple90MGR12Global";
         try {
             stmt.executeUpdate(sqlDropIndexOfName);
@@ -1900,6 +2190,58 @@ public class PhoenixSQLOperation {
     }
 
 
+    public static void selectAndQueryRowKeyTest(){
+        Random r = new Random();
+        for(int i=0;i<=400;i+=10){
+//        for(int i=400;i>=0;i-=10){
+            int delta = 20+100*i;
+            long sumOfTime = 0;
+            for(int a = 20;a<100020;a+=200){
+                //int a = r.nextInt(100000);
+                int b = a+delta;
+                String sqlSelect = "Select rowKey,valueString1000B From PhoenixHitLWD1000BR6BF where rowKey between "+a+" and "+b;
+                long startTimeSelect = System.currentTimeMillis();
+                int count = selectHaveResultsPhoenixHitReturn(sqlSelect);
+//                System.out.println(count);
+                long endTimeSelect = System.currentTimeMillis();
+                sumOfTime+=(endTimeSelect - startTimeSelect);
+            }
+            try{
+                String str = i+" "+sumOfTime/500.0+"\n";
+                File fileSDTGeoHashThreeAll = new File("PhoenixHitQueryTest6.txt");
+                FileUtil.writeToFile(fileSDTGeoHashThreeAll, str);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            System.out.println(i+" "+sumOfTime/500.0);
+        }
+
+    }
+    public static void selectAndQueryRowKeyTestQF(){
+//        for(int i=0;i<=400;i+=10){
+        for(int i=400;i>=0;i-=10){
+            int delta = 20+100*i;
+            long sumOfTime = 0;
+            for(int a = 20;a<100020;a+=200){
+                int b = a+delta;
+                String sqlSelect = "Select rowKey,str From RowKeyTest where rowKey between "+a+" and "+b;
+                long startTimeSelect = System.currentTimeMillis();
+                int count = selectHaveResultsPhoenixHitReturnQF(sqlSelect);
+//                System.out.println(count);
+                long endTimeSelect = System.currentTimeMillis();
+                sumOfTime+=(endTimeSelect - startTimeSelect);
+            }
+            try{
+                String str = i+" "+sumOfTime/500.0+"\n";
+                File fileSDTGeoHashThreeAll = new File("PhoenixHitQueryTest22.txt");
+                FileUtil.writeToFile(fileSDTGeoHashThreeAll, str);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            System.out.println(i+" "+sumOfTime/500.0);
+        }
+
+    }
 
 
 
