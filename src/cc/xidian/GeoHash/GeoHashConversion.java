@@ -18,8 +18,8 @@ public class GeoHashConversion {
     public static final int SEARCH_DEPTH_MAX = 60;
     public static final int MAX_HASH_LENGTH = 12;
     private static final String BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
-    public static final String BINARY_ZERO60 = "000000000000000000000000000000000000000000000000000000000000";//60个0的字符串
-    public static final String BINARY_ONE60 = "111111111111111111111111111111111111111111111111111111111111";//60个1的字符串
+//    public static final String BINARY_ZERO60 = "000000000000000000000000000000000000000000000000000000000000";//60个0的字符串
+//    public static final String BINARY_ONE60 = "111111111111111111111111111111111111111111111111111111111111";//60个1的字符串
     //BASE32编码
     final static char[] digits = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
             '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',

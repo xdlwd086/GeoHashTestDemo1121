@@ -35,7 +35,7 @@ public class FileUtil {
      */
     public static void getFileSDTGeoHashSDUMTAverageFromFileInitial(File fileSDTGeoHashSDUMT,File fileSDTGeoHashSDUMTAverage)throws Exception{
         SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[1200];
-        int sum = 110;
+        int sum = 300;
         //初始化操作
         for(int i=1;i<=29;i++){
             sDTArray[i] = new SearchDepthAndTimeOfSDU(i);
@@ -76,6 +76,67 @@ public class FileUtil {
             bufferedWriter.close();
             fileWriter.close();
         }
+    }
+
+    public static void getCombinedTimeFileFromPhoenixTimeFileAndPostgreSQLTimeFile(File filePhoenix,File filePostgreSQL,File fileCombined){
+        try{
+            InputStreamReader inputStreamReaderPh = new InputStreamReader(new FileInputStream(filePhoenix),"UTF-8");
+            InputStreamReader inputStreamReaderPg = new InputStreamReader(new FileInputStream(filePostgreSQL),"UTF-8");
+            BufferedReader bufferedReaderPh = new BufferedReader(inputStreamReaderPh);
+            BufferedReader bufferedReaderPg = new BufferedReader(inputStreamReaderPg);
+            String strLinePh;
+            String strLinePg;
+            String[] strLineArrayPh,strLineArrayPg;
+            while((strLinePh = bufferedReaderPh.readLine())!=null&&(strLinePg = bufferedReaderPg.readLine())!=null) {
+                strLineArrayPh = strLinePh.split(" ");
+                strLineArrayPg = strLinePg.split(" ");
+                if(strLineArrayPh[0].equals(strLineArrayPg[0])){
+                    String strLineCombined = strLinePh+" "+strLineArrayPg[1];
+                    System.out.println(strLineCombined);
+                    FileWriter fileWriter = new FileWriter(fileCombined,true);//以追加方式写入文件
+                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(strLineCombined+"\n");
+                    bufferedWriter.close();
+                    fileWriter.close();
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+    public static void getCombinedTimeFileFromPhoenixTimeFileAndPostgreSQLTimeFile(File filePhoenix,File filePgBTree,File filePgGist,File fileCombined){
+        try{
+            InputStreamReader inputStreamReaderPh = new InputStreamReader(new FileInputStream(filePhoenix),"UTF-8");
+            InputStreamReader inputStreamReaderPgBTree = new InputStreamReader(new FileInputStream(filePgBTree),"UTF-8");
+            InputStreamReader inputStreamReaderPgGist = new InputStreamReader(new FileInputStream(filePgGist),"UTF-8");
+            BufferedReader bufferedReaderPh = new BufferedReader(inputStreamReaderPh);
+            BufferedReader bufferedReaderPgBTree = new BufferedReader(inputStreamReaderPgBTree);
+            BufferedReader bufferedReaderPgGist = new BufferedReader(inputStreamReaderPgGist);
+            String strLinePh;
+            String strLinePgBTree;
+            String strLinePgGist;
+            String[] strLineArrayPh,strLineArrayPgBTree,strLineArrayPgGist;
+            while((strLinePh = bufferedReaderPh.readLine())!=null&&(strLinePgBTree = bufferedReaderPgBTree.readLine())!=null&&(strLinePgGist = bufferedReaderPgGist.readLine())!=null) {
+                strLineArrayPh = strLinePh.split(" ");
+                strLineArrayPgBTree = strLinePgBTree.split(" ");
+                strLineArrayPgGist = strLinePgGist.split(" ");
+                if(strLineArrayPh[0].equals(strLineArrayPgBTree[0])&&strLineArrayPh[0].equals(strLineArrayPgGist[0])){
+                    String strLineCombined = strLinePh+" "+strLineArrayPgBTree[1]+" "+strLineArrayPgGist[1];
+                    System.out.println(strLineCombined);
+                    FileWriter fileWriter = new FileWriter(fileCombined,true);//以追加方式写入文件
+                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(strLineCombined+"\n");
+                    bufferedWriter.close();
+                    fileWriter.close();
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
     /**
      * 函数功能：文本处理，求和并平均，编写时间：2016年9月26日23:18:39
