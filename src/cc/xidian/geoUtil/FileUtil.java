@@ -34,10 +34,10 @@ public class FileUtil {
      * @throws Exception
      */
     public static void getFileSDTGeoHashSDUMTAverageFromFileInitial(File fileSDTGeoHashSDUMT,File fileSDTGeoHashSDUMTAverage)throws Exception{
-        SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[1200];
-        int sum = 300;
+        SearchDepthAndTimeOfSDU[] sDTArray = new SearchDepthAndTimeOfSDU[5000];
+        int sum = 100;
         //初始化操作
-        for(int i=1;i<=29;i++){
+        for(int i=1;i<=30;i++){
             sDTArray[i] = new SearchDepthAndTimeOfSDU(i);
         }
         if(fileSDTGeoHashSDUMT.exists()&&fileSDTGeoHashSDUMT.isFile()){
@@ -59,7 +59,7 @@ public class FileUtil {
             inputStreamReader.close();
         }
         DecimalFormat df = new DecimalFormat("#.000");
-        for(int i=1;i<=29;i++){
+        for(int i=1;i<=30;i++){
             sDTArray[i].searchDepth = i;
             //三个时间求和后取平均值，并保留小数点后三位数据
             sDTArray[i].timeOfPhoenixGeoHashSecondFiltering /= sum;

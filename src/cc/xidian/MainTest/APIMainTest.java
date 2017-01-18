@@ -15,6 +15,8 @@ public class APIMainTest {
     public static void main(String[] args){
         PhoenixSQLOperation.getConnectionWithHBase();
 
+//        PhoenixSQLOperation.getConnectionWithHBaseXenServerHDP();
+
         String strGeoDataTableNameA = "GEOPOINTTABLELWDSIMPLEUpsertTestNoBatch20MR8A";
         String strGeoDataTableNameB = "GEOPOINTTABLELWDSIMPLEUpsertTestNoBatch20MR8B";
 //        String strGeoDataTableName = "GEOPOINTTABLELWDSIMPLESECONDINDEXTEST10MR12F";
@@ -29,8 +31,8 @@ public class APIMainTest {
         tableColumnNameAndTypeConstraint.add(strArrayX);
         tableColumnNameAndTypeConstraint.add(strArrayY);
         tableColumnNameAndTypeConstraint.add(strArrayGeoHash);
-        String strGeoDataTableConstraintA = "SALT_BUCKETS=12";
-        String strGeoDataTableConstraintB = "IMMUTABLE_ROWS=true,SALT_BUCKETS=8";
+        String strGeoDataTableConstraintA = "SALT_BUCKETS=35";
+        String strGeoDataTableConstraintB = "IMMUTABLE_ROWS=true,SALT_BUCKETS=35";
         GeoDataTableInfoA geoDataTableInfoA = new GeoDataTableInfoA(strGeoDataTableNameA,tableColumnNameAndTypeConstraint,strGeoDataTableConstraintB);
         GeoDataTableInfoA geoDataTableInfoB = new GeoDataTableInfoA(strGeoDataTableNameB,tableColumnNameAndTypeConstraint,strGeoDataTableConstraintB);
         System.out.println(geoDataTableInfoA.getStrColumnSQL());
@@ -44,8 +46,8 @@ public class APIMainTest {
         includeColumnNames.add("geoName");
         includeColumnNames.add("xLongitude");
         includeColumnNames.add("yLatitude");
-        String strGeoIndexTableConstraintA = "SALT_BUCKETS=8";
-        String strGeoIndexTableConstraintB = "ASYNC SALT_BUCKETS=8";
+        String strGeoIndexTableConstraintA = "SALT_BUCKETS=35";
+        String strGeoIndexTableConstraintB = "ASYNC SALT_BUCKETS=35";
         GeoIndexTableInfoA geoIndexTableInfoA = new GeoIndexTableInfoA(strGeoIndexTableNameA,strGeoDataTableNameA,indexColumnNames,includeColumnNames,
                 strGeoIndexTableConstraintA);
         GeoIndexTableInfoA geoIndexTableInfoB = new GeoIndexTableInfoA(strGeoIndexTableNameB,strGeoDataTableNameB,indexColumnNames,includeColumnNames,
@@ -57,17 +59,17 @@ public class APIMainTest {
 //        PhoenixSQLOperation.createGeoDateTableA(geoDataTableInfoB);
 //        PhoenixSQLOperation.upsertGeoRecordsToGeoTable(geoDataTableInfoA);
 //        PhoenixSQLOperation.dropGeoIndexTableA(geoIndexTableInfoA);
-//        PhoenixSQLOperation.createGeoIndexTableA(geoIndexTableInfoA);
-        PhoenixSQLOperation.createGeoIndexTableA(geoIndexTableInfoB);
+        PhoenixSQLOperation.createGeoIndexTableA(geoIndexTableInfoA);
+//        PhoenixSQLOperation.createGeoIndexTableA(geoIndexTableInfoB);
 //        PhoenixSQLOperation.upsertGeoRecordsToGeoTable(geoDataTableInfoA);
 
 //        ArrayList<Long> upsertTimeArray = PhoenixSQLOperation.upsertGeoRecordsToGeoTableAndGetTime(geoDataTableInfoA);
 
-//        File fileUpsertTimeA = new File("upsertTimePer100k20MAACleanBatch.txt");
+        File fileUpsertTimeA = new File("upsertTimePer100k20MAACleanBatch2.txt");
 //        File fileCommitTimeA = new File("lllcommitTimePer50K20MAB.txt");
 //        File fileUpsertTimeB = new File("lllupsertTimeNoBatchPer5k20MAC.txt");
 //        File fileCommitTimeB = new File("lllcommitTimeNoBatchPer5K20MAC.txt");
-//        PhoenixSQLOperation.upsertGeoRecordsToGeoTableAndGetTimeToFile(geoDataTableInfoA,fileUpsertTimeA);
+        PhoenixSQLOperation.upsertGeoRecordsToGeoTableAndGetTimeToFile(geoDataTableInfoA,fileUpsertTimeA);
 //        PhoenixSQLOperation.upsertGeoRecordsToGeoTableANoBatchTimeToFile(geoDataTableInfoB,fileUpsertTimeB,fileCommitTimeB);
 //        PhoenixSQLOperation.upsertGeoRecordsToGeoTable(geoDataTableInfoA);
 

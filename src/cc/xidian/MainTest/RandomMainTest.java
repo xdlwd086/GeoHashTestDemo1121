@@ -57,8 +57,8 @@ public class RandomMainTest {
 //            File fileSDTGeoHashSDTMTAverage = new File("20130401_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
 //            FileUtil.getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
        // }
-        File fileSDTGeoHashSDUMT = new File("rQSFlySDTGeoHashSDU900SumMergeAreaRatio30M28.txt");
-        File fileSDTGeoHashSDTMTAverage = new File("rQSFlySDTGeoHashSDU900SumMergeResult30M21.txt");
+        File fileSDTGeoHashSDUMT = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08.txt");
+        File fileSDTGeoHashSDTMTAverage = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08_P.txt");
         FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
 //        double d = 12.56397*100000;
 //        System.out.println(d);
