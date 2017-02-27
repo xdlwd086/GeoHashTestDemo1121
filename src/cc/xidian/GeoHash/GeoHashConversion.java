@@ -555,7 +555,7 @@ public class GeoHashConversion {
         //int indexAAR = 0;
         while (!rPQueue.isEmpty()) {
             //保证队列中所有前缀长度相同，即处在同一遍历层，才能计算面积
-            double rPQueueSizeStandard = Math.pow(2, (rPQueue.getFirst().length - rectanglePrefix.length));//计算各搜索深度的节点个数
+//            double rPQueueSizeStandard = Math.pow(2, (rPQueue.getFirst().length - rectanglePrefix.length));//计算各搜索深度的节点个数
 //            double rPQueueSizeStandard = Math.pow(2,(rPQueue.getFirst().length-rectanglePrefix.length));//计算各搜索深度的节点个数
             //如果队列中的节点刚好处于同一层且搜索深度大于0且队列中元素的个数小于该层节点的标准个数（即该层节点有舍弃的节点）
 //            if(rPQueue.getLast().length == rPQueue.getFirst().length

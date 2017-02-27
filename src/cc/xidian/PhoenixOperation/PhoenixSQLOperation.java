@@ -26,9 +26,9 @@ import java.util.Stack;
 public class PhoenixSQLOperation {
     public static Connection conn;
     public static Statement stmt;
-    public static String tableName = "GeoPointTableLWDSimple100MR15GIGeoHashB";
+    public static String tableName = "GEOPOINTTABLELWDSIMPLEBULKLOADER100MR20A";
 //    public static String tableName = "GEOPOINTTABLELWDSIMPLEINSERTTESTR8PER5K10MA";
-    public static String tableNameGDELT = "GDELTEventLWD2016R15GIGeoHashXYTA";
+    public static String tableNameGDELT = "GDELTLWD2016R20GEOHASHA";
     //public static int count;
 
 //    public static void createAndInsertRecordToTableNamedPhoenixHitLWD500B(){
@@ -118,7 +118,7 @@ public class PhoenixSQLOperation {
     public static void createGeoDateTableA(GeoDataTableInfoA geoDataTableInfoA){
         String sqlCreateTable = "Create Table if not exists "+geoDataTableInfoA.getStrGeoDataTableName()+geoDataTableInfoA.getStrColumnSQL()
                 +geoDataTableInfoA.getStrGeoDataTableConstraint();
-//        System.out.println(sqlCreateTable);
+        System.out.println(sqlCreateTable);
         long startTimeCreateTable = System.currentTimeMillis();
         try {
 
@@ -387,10 +387,10 @@ public class PhoenixSQLOperation {
         try {
             PreparedStatement pst = conn.prepareStatement(sqlUpsertGeoRecords);
             //每10万行记录作为一个插入单元，共插入100次，总共插入1000万条记录
-            for(int j=0;j<200;j++){
+            for(int j=0;j<2000;j++){
                 long startTimeBacth = System.currentTimeMillis();
-                for(int i=0;i<100000;i++){
-                    int geoID = (i+j*100000);
+                for(int i=0;i<10000;i++){
+                    int geoID = (i+j*10000);
                     pst.setInt(1,geoID);
                     String geoName = RandomOperation.RandomStringSimple(6);
                     pst.setString(2, geoName);
@@ -2053,9 +2053,12 @@ public class PhoenixSQLOperation {
         ArrayList<GeoPointTableRecordSimple> geoPointTableRecords = new ArrayList<GeoPointTableRecordSimple>();//保存查询结果记录的数组
         //UDF函数操作
         String sqlDropRectangleQueryUDFFunction = "DROP FUNCTION IF EXISTS RectangleQueryUDFFunction";//删除UDF函数的SQL语句
+//        String sqlCreateRectangleQueryUDFFunction = "CREATE FUNCTION RectangleQueryUDFFunction(Double, Double, Varchar) " +
+//                "returns Integer as 'cc.xidian.PhoenixOperation.UDFRectangleDemoLWD' " +
+//                "using jar 'hdfs://cloudgis/apps/hbase/data/lib/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
         String sqlCreateRectangleQueryUDFFunction = "CREATE FUNCTION RectangleQueryUDFFunction(Double, Double, Varchar) " +
                 "returns Integer as 'cc.xidian.PhoenixOperation.UDFRectangleDemoLWD' " +
-                "using jar 'hdfs://cloudgis/apps/hbase/data/lib/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
+                "using jar 'hdfs://centos6.8.xd6101.hdp:8020/geodata/UDFRectangleDemoLWD.jar'";//创建UDF函数的SQL语句，URL路径一定要配置好，否则会出错
         String sqlUDFConstraint = rQS.xLongitudeBL+","+rQS.yLatitudeBL+","+rQS.xLongitudeTR+","+rQS.yLatitudeTR;
         String strUDFFunction = "RectangleQueryUDFFunction(xLongitude,yLatitude,'"+sqlUDFConstraint+"')=1";
         //经刘文东改进后的GeoHash索引算法，使用BFS和面积比值
@@ -2142,8 +2145,8 @@ public class PhoenixSQLOperation {
         //System.out.println(sqlGeoHashQueryOrBetweenAndAndUDFFunction);
         //System.out.println(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
         try {
-            //Statement stmtUDF = conn.createStatement();
-            //stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
+//            Statement stmtUDF = conn.createStatement();
+//            stmtUDF.execute(sqlDropRectangleQueryUDFFunction);
 //            stmtUDF.execute(sqlCreateRectangleQueryUDFFunction);
             rs = stmt.executeQuery(sqlGeoHashQueryUnionAllBetweenAndAndUDFFunction);
             //此处判断不能用rs.next()，否则最终得到的结果集会少一个，但次出的判断并不能起到作用，程序错误，有待修正

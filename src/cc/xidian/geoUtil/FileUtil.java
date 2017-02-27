@@ -7,6 +7,7 @@ import cc.xidian.GeoObject.SearchDepthAndTimeOfSDU;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  * Created by hadoop on 2016/9/8.
@@ -139,13 +140,14 @@ public class FileUtil {
 
     }
     /**
-     * 函数功能：文本处理，求和并平均，编写时间：2016年9月26日23:18:39
+     * 函数功能：GDELT数据集预处理函数
      * @param fileGDELTEventDataSource 原始文件
      * @param fileGDELTEventRecordsSimpleAs 结果文件
      * @throws Exception
      */
     public static void getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(File fileGDELTEventDataSource,File fileGDELTEventRecordsSimpleAs)throws Exception{
         int count = 0;
+        Stack<GDELTEventRecordSimpleA> stackGDELT = new Stack<GDELTEventRecordSimpleA>();
         FileWriter fileWriter = new FileWriter(fileGDELTEventRecordsSimpleAs,true);//以追加方式写入文件
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         //if(fileGDELTEventDataSource.exists()&&fileGDELTEventDataSource.isFile()){
@@ -177,11 +179,33 @@ public class FileUtil {
                     g.dateAdded = Integer.parseInt(strLineArray[strLineArray.length - 2]);
                     g.sourceURL = strLineArray[strLineArray.length - 1];
 
-                    System.out.println(count+","+g.toString());
-                    bufferedWriter.write(g.toString() + "\n");
-                    count++;
+                    //去重操作
+                    if(stackGDELT.empty()){
+                        stackGDELT.push(g);
+                    }else{
+                        GDELTEventRecordSimpleA gTemp = stackGDELT.pop();
+                        Double gTempLong = gTemp.actionGeo_Long;
+                        Double gTempLat = gTemp.actionGeo_Lat;
+                        Double gLong = g.actionGeo_Long;
+                        Double gLat = g.actionGeo_Lat;
+
+                        if(gTempLong.equals(gLong)&&gTempLat.equals(gLat)){
+                            stackGDELT.push(gTemp);
+                        }else{
+                            stackGDELT.push(gTemp);
+                            stackGDELT.push(g);
+                        }
+                    }
+
+
+
                 }
             }
+        for(GDELTEventRecordSimpleA g:stackGDELT){
+            System.out.println(count+","+g.toString());
+            bufferedWriter.write(g.toString() + "\n");
+            count++;
+        }
             bufferedReader.close();
             inputStreamReader.close();
             bufferedWriter.close();
@@ -230,5 +254,22 @@ public class FileUtil {
         inputStreamReader.close();
         bufferedWriter.close();
         fileWriter.close();
+    }
+
+    public static void getFileGDELTEventRecordXYsFromGDELTEventRecordSimples(File fileGDELTEventSimple,File fileGDELTEventXY)throws Exception{
+        FileWriter fileWriter = new FileWriter(fileGDELTEventXY,true);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileGDELTEventSimple),"UTF-8");
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String strLine;
+        String[] strLineArray;
+        int count = 0;
+        while((strLine = bufferedReader.readLine())!=null) {
+            strLineArray = strLine.split(",");
+            String strXY = strLineArray[8]+" "+strLineArray[9];
+            System.out.println(count+","+strXY);
+            bufferedWriter.write(strXY +"\n");
+            count++;
+        }
     }
 }

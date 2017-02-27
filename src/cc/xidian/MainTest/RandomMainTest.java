@@ -51,23 +51,23 @@ public class RandomMainTest {
 //        System.out.println(cQS.isContainPoint(xLongitudeAny,yLatitudeAny));
 
         //BitSet测试
-        //for (int i = 1101;i<=1109; i++){
-//            File fileSDTGeoHashSDUMT = new File("data"+File.separator+"2016"+i+".export.CSV");
+        for (int i = 1201;i<=1231; i++){
+            File fileSDTGeoHashSDUMT = new File("data"+File.separator+"2016"+i+".export.CSV");
 //            File fileSDTGeoHashSDUMT = new File("20130401_20131231.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
-//            File fileSDTGeoHashSDTMTAverage = new File("20130401_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
-//            FileUtil.getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
-       // }
-        File fileSDTGeoHashSDUMT = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08.txt");
-        File fileSDTGeoHashSDTMTAverage = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08_P.txt");
-        FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
+            File fileSDTGeoHashSDTMTAverage = new File("20160101_20161231.GDELTEventRecordsSimpleAsWithGeoHashValueNoReplicate.csv");
+            FileUtil.getFileGDELTEventRecordSimpleAsFromFileGDELTEventDataSource(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
+        }
+//        File fileSDTGeoHashSDUMT = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08.txt");
+//        File fileSDTGeoHashSDTMTAverage = new File("rQS1_1minSDTGeoHashSDU100SumMergeAreaRatio100MNew08_P.txt");
+//        FileUtil.getFileSDTGeoHashSDUMTAverageFromFileInitial(fileSDTGeoHashSDUMT,fileSDTGeoHashSDTMTAverage);
 //        double d = 12.56397*100000;
 //        System.out.println(d);
 
-//        File fileGDELTEventRecordSimpleAs = new File("20160101_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
-//        File fileGDELTEventRecordSimpleAsSum = new File("20130401_20161109.GDELTEventRecordsSimpleAsWithGeoHashValue.csv");
-//        FileUtil.getFileGDELTEventRecordSimpleAsSumFromFileGDELTEventRecordSimpleAs(fileGDELTEventRecordSimpleAs,fileGDELTEventRecordSimpleAsSum);
+//        File fileGDELTEventRecordSimpleAs = new File("20161201_20161231.GDELTEventRecordsSimpleAsWithGeoHashValueNoReplicate.csv");
+//        File fileGDELTEventRecordXY = new File("20161201_20161231.GDELTEventRecordsXYNoReplicate.csv");
+//        FileUtil.getFileGDELTEventRecordXYsFromGDELTEventRecordSimples(fileGDELTEventRecordSimpleAs,fileGDELTEventRecordXY);
 
-        System.out.println(ClassLoader.getSystemClassLoader());
+//        System.out.println(ClassLoader.getSystemClassLoader());
         //Polygon g = new Polygon()
     }
 }
