@@ -24,60 +24,6 @@ public class GeoHashMainTest {
 //        PhoenixSQLOperation.getConnectionWithHBase();//建立连接
 
         PhoenixSQLOperation.getConnectionWithHBaseXenServerHDP();
-        //1、通过Phoenix在HBase上的操作
-        //1.2 删除表操作，该操作只执行一次
-//        PhoenixSQLOperation.dropTableNamedGeoPointTable();//只执行一次
-        //1.1 创建表并插入数据操作，该操作只执行一次
-//        long startTimeCreateAndInsertRecords = System.currentTimeMillis();
-        //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable100M();//只执行一次
-        //PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable1MWithLocalIndex();//建表后先创建Phoenix局部索引，然后再插入数据
-//        PhoenixSQLOperation.createAndInsertRecordToTableNamedGeoPointTable10M();//创建一个10M记录的表，分区数为6，建立局部索引，并创建数据
-//        PhoenixSQLOperation.createAndInsertRecordToTableNamedGDELTEventLWD2016R15A();
-//        long endTimeCreateAndInsertRecords = System.currentTimeMillis();
-//        System.out.println("CreateAndInsertRecords-Time: "+(endTimeCreateAndInsertRecords - startTimeCreateAndInsertRecords));
-
-        //以追加的方式写入记录
-//        long startTimeInsert1MRecords = System.currentTimeMillis();
-//        PhoenixSQLOperation.insertRecordToTableNamedGeoPointTable();
-//        long endTimeInsert1MRecords = System.currentTimeMillis();
-//        System.out.println("CreateAndInsertRecords-Time: "+(endTimeInsert1MRecords - startTimeInsert1MRecords));
-
-        //1.3 查询并写入文件操作，该操作只执行一次，目的是获取表中部分数据并进行查看
-//        long startTimeWriteToFile = System.currentTimeMillis();
-//        PhoenixSQLOperation.selectResultsToFile();//只执行一次
-//        long endTimeWriteToFile = System.currentTimeMillis();
-//        System.out.println("WriteToFile-Time: "+(endTimeWriteToFile-startTimeWriteToFile));
-        //1.4 删除Phoenix二级索引操作，该操作只执行一次
-//        PhoenixSQLOperation.dropIndexOfName();G
-////////        //1.5 创建二级索引操作，并计时，该操作只执行一次
-//        long startTimeSecondIndex = System.currentTimeMillis();
-        //PhoenixSQLOperation.createSecondIndexForGeoNameOfTable();
-        //PhoenixSQLOperation.createSecondIndexForGeoPointTableLWD1MLong();
-        //PhoenixSQLOperation.createSecondIndexForGeoHashValueBase32OfTable();
-        //PhoenixSQLOperation.createSecondIndexForGeoHashValueLongOfTable100M();
-//        PhoenixSQLOperation.createSecondIndexHintForGeoHashValueLongOfTable();
-//        long endTimeSecondIndex = System.currentTimeMillis();
-//        System.out.println("CreateSecondIndex-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
-
-//        long startTimeSecondIndex = System.currentTimeMillis();
-//        PhoenixSQLOperation.insert30MRecordToFile();
-//        long endTimeSecondIndex = System.currentTimeMillis();
-//        System.out.println("Insert30MRecordsToFile-Time: "+(endTimeSecondIndex - startTimeSecondIndex));
-
-
-//        PhoenixSQLOperation.createAndInsertRecordToTableNamedPhoenixHitLWD500B();
-//        PhoenixSQLOperation.selectAndQueryRowKeyTest();
-
-
-        //Phoenix二级索引测试，针对geoHashValueLong列，类型为BigInt
-//        long startTimeSelectByGeoID = System.currentTimeMillis();
-//        long[] geoHashValueLongs = PhoenixSQLOperation.getGeoHashValueLongsSelectByRandomGeoIDToTestPhoenixSecondIndex();
-//        long endTimeSelectByGeoID = System.currentTimeMillis();
-//        System.out.println("SelectByGeoID-Time1000: "+(endTimeSelectByGeoID - startTimeSelectByGeoID));
-//        long startTimeSelectByGeoHashValueLong = System.currentTimeMillis();
-//        PhoenixSQLOperation.selectAndQueryByGeoHashValueLongsToTestPhoenixSecondIndex(geoHashValueLongs);
-//        long endTimeSelectByGeoHashValueLong = System.currentTimeMillis();
-//        System.out.println("SelectByGeoHashValueLong-Time1000: "+(endTimeSelectByGeoHashValueLong - startTimeSelectByGeoHashValueLong));
 
         //2、查询操作
         //2.1 19种矩形查询范围的设计
@@ -102,11 +48,12 @@ public class GeoHashMainTest {
         RectangleQueryScope rQS18_1234min2 = new RectangleQueryScope(-1.02314,-1.18972,1.05846,1.02579);//横跨第一二三四象限的矩形范围
         //创建通用的查询范围对象
         RectangleQueryScope r = new RectangleQueryScope();
-        r = rQS1_1min;
+        r = rQS18_1234min2;
 
         //GeoHash新查询算法测试，时间：2016年12月21日09:20:14
-        Stack<GeoHashIndexRecord> geoHashIndexRecordStack = GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndAreaRatioLWDTest(r);
-        for(GeoHashIndexRecord g:geoHashIndexRecordStack) {
+        Stack<GeoHashIndexRecord> geoHashIndexRecordStack = GeoHashConversion.getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndLevelMaxTest(r);
+        GeoHashIndexRecord g = geoHashIndexRecordStack.pop();
+//        for(GeoHashIndexRecord g:geoHashIndexRecordStack) {
 //            System.out.println(g.toString());
 
 //            GeoHashIndexRecord g1 = geoHashIndexRecordStack.get(3);
@@ -118,6 +65,7 @@ public class GeoHashMainTest {
 //                double[] xyTRTemp = GeoHashConversion.HashToLongLat(longs[1]);
 //                System.out.println(xyBLTemp[0] + "," + xyBLTemp[1] + "," + xyTRTemp[0] + "," + xyTRTemp[1]);
 //            }
+        for (int i=0;i<100;i++){
             System.out.println("==================================");
             for(RectanglePrefix rP:g.rPArray){
                 long[] geoHashLongs = GeoHashConversion.getGeoHashLongsFromPrefix(rP);
@@ -424,36 +372,7 @@ public class GeoHashMainTest {
         //}
 //
 //
-//        //PhoenixSecondTest
-////        long startTimeSelectByGeoID = System.currentTimeMillis();
-////        ArrayList<String> geoNames = PhoenixSQLOperation.getGeoNamesSelectByRandomGeoIDToTestPhoenixSecondIndex();
-////        long endTimeSelectByGeoID = System.currentTimeMillis();
-////        System.out.println("SelectByGeoID-Time100: "+(endTimeSelectByGeoID - startTimeSelectByGeoID));
-////        long startTimeSelectByGeoName = System.currentTimeMillis();
-////        PhoenixSQLOperation.selectAndQueryByGeoNamesToTestPhoenixSecondIndex(geoNames);
-////        long endTimeSelectByGeoName = System.currentTimeMillis();
-////        System.out.println("SelectByGeoName-Time100: "+(endTimeSelectByGeoName - startTimeSelectByGeoName));
-//
-////        long startTimeSelectByGeoID = System.currentTimeMillis();
-////        ArrayList<String> geoHashValues = PhoenixSQLOperation.getGeoHashValuesSelectByRandomGeoIDToTestPhoenixSecondIndex();
-////        long endTimeSelectByGeoID = System.currentTimeMillis();
-////        System.out.println("SelectByGeoID-Time100: "+(endTimeSelectByGeoID - startTimeSelectByGeoID));
-////        long startTimeSelectByGeoName = System.currentTimeMillis();
-////        PhoenixSQLOperation.selectAndQueryByGeoHashValuesToTestPhoenixSecondIndex(geoHashValues);
-////        long endTimeSelectByGeoName = System.currentTimeMillis();
-////        System.out.println("SelectByGeoName-Time100: "+(endTimeSelectByGeoName - startTimeSelectByGeoName));
-//
-////     //Phoenix二级索引测试，针对geoHashValueLong列，类型为BigInt
-////     long startTimeSelectByGeoID = System.currentTimeMillis();
-////     long[] geoHashValueLongs = PhoenixSQLOperation.getGeoHashValueLongsSelectByRandomGeoIDToTestPhoenixSecondIndex();
-////     long endTimeSelectByGeoID = System.currentTimeMillis();
-////     System.out.println("SelectByGeoID-Time100: "+(endTimeSelectByGeoID - startTimeSelectByGeoID));
-////     long startTimeSelectByGeoHashValueLong = System.currentTimeMillis();
-////     PhoenixSQLOperation.selectAndQueryByGeoHashValueLongsToTestPhoenixSecondIndex(geoHashValueLongs);
-////     long endTimeSelectByGeoHashValueLong = System.currentTimeMillis();
-////     System.out.println("SelectByGeoHashValueLong-Time100: "+(endTimeSelectByGeoHashValueLong - startTimeSelectByGeoHashValueLong));
-//
-//
+
 //        //GeoHash叶节点合并测试
 ////        for(int searchManualTestMerge=1;searchManualTestMerge<=10;searchManualTestMerge++){
 ////            System.out.println("================="+"SearchDepthManual: "+searchManualTestMerge+"===============");

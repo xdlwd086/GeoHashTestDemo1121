@@ -635,7 +635,187 @@ public class GeoHashConversion {
         return gHIRStack;
     }
 
+    /**
+     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并，
+     * 算法再次修订：修正了一些错误，并将深度优先遍历方式改为广度优先遍历方式，递归结束标志改为面积比率，最后进行GeoHash段的合并
+     * 编码人：刘文东，由刘文东进行重新设计与修订
+     * 修订时间：2016年9月28日16:35:36
+     * @param rQS 矩形查询范围
+     * @return 查询结果的许多GeoHash范围值，long类型
+     */
+    public static Stack<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndLevelMaxTest(RectangleQueryScope rQS) {
+        //1. 计算查询范围的最大划分层次
+        int levelLon = (int) (Math.log(LONSIZE / rQS.deltaX) / Math.log(2));
+        int levelLat = (int) (Math.log(LATSIZE / rQS.deltaY) / Math.log(2));
+        int levelMax = Math.max(levelLon, levelLat);
+        System.out.println(levelMax);
 
+        Stack<GeoHashIndexRecord> gHIRStack = new Stack<GeoHashIndexRecord>();
+
+        int[] bfsLayerSize = new int[50];
+        bfsLayerSize[0] = 1;
+        //计算查询区域的面积，扩大10的10次方倍
+        DecimalFormat df = new DecimalFormat("#.00000");
+        long deltaX = (long) (Double.parseDouble(df.format(Math.abs(rQS.deltaX))) * 100000);
+        long deltaY = (long) (Double.parseDouble(df.format(Math.abs(rQS.deltaY))) * 100000);
+        double rQSArea = deltaX * deltaY;//计算查询范围的面积
+
+        RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
+        long rPArea = getRectangleQueryScopeAreaFromPrefix(rectanglePrefix);//由基本前缀获取基本矩形的面积
+        ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
+        rPQueue.push(rectanglePrefix);//将基本前缀压栈
+        //递归遍历二叉树操作，深度优先遍历，DFS
+        //int indexAAR = 0;
+        while (!rPQueue.isEmpty()) {
+            //如果队列中的节点刚好处于同一层且搜索深度大于0
+            if (rPQueue.getLast().length == rPQueue.getFirst().length && (rPQueue.getFirst().length - rectanglePrefix.length) > 0) {
+                bfsLayerSize[rPQueue.getFirst().length - rectanglePrefix.length] = rPQueue.size();//保存当前层的元素个数
+                //如果当前层有元素被舍弃
+                if (rPQueue.size() < bfsLayerSize[rPQueue.getFirst().length - rectanglePrefix.length - 1] * 2) {
+                    //开始构造索引记录对象
+                    GeoHashIndexRecord g = new GeoHashIndexRecord();
+                    g.searchDepth = rPQueue.getFirst().length - rectanglePrefix.length;//搜索深度
+                    g.rQS = rQS;//查询范围
+                    g.sizeOfRectanglePrefix = rPQueue.size();//当前层前缀码对象个数
+                    //计算当前队列中所有同层前缀对应面积的总和
+                    long rPQueueRectangleArea = rPArea >>> (rPQueue.getFirst().length - rectanglePrefix.length);//当前层前缀码对于的矩形面积
+                    long rPQueueRectangleAreaSum = 0;//面积和
+                    for (RectanglePrefix r : rPQueue) {
+                        RectangleQueryScope rQSQueue = getRectangleQueryScopeFromPrefix(r);
+                        rPQueueRectangleAreaSum += rPQueueRectangleArea;//求面积和
+                        g.rPArray.add(r);//将当前层的所有前缀码添加到索引记录对象的前缀码数组中
+                    }
+                    //将前缀码数组中的前缀码取出，求对应的GeoHash段，进行合操作，并将合并后的GeoHash段添加到索引记录对象的GeoHash段数组中
+                    g.getMergedGeoHashLongsFromRectanglePrefixArray();
+                    g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();//求合并后的GeoHash段的个数
+                    g.areaRatio = rPQueueRectangleAreaSum / rQSArea;//面积比例的计算
+
+                    //若合并后的GeoHash段相同，则选择搜索深度最深的结果
+                    if (gHIRStack.empty()) {
+                        gHIRStack.push(g);
+                    } else {
+                        GeoHashIndexRecord gPop = gHIRStack.pop();
+                        if (gPop.sizeOfGeoHashLongs == g.sizeOfGeoHashLongs) {
+                            gHIRStack.push(g);
+                        } else {
+                            gHIRStack.push(gPop);
+                            gHIRStack.push(g);
+                        }
+                    }
+                }
+
+            }
+            //递归结束的标志
+            if (rPQueue.getFirst().length >= levelMax * 2) {
+                break;
+            }else{
+                RectanglePrefix rPNow = rPQueue.pollLast();
+                RectanglePrefix attachOne = rPNow.attachOne();//补1操作
+                RectanglePrefix attachZero = rPNow.attachZero();//补0操作
+                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
+                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
+                //若矩形范围相交，则将前缀码压栈
+                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+                    rPQueue.push(attachZero);
+                }
+                if (rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)) {
+                    rPQueue.push(attachOne);
+                }
+            }
+
+        }
+        return gHIRStack;
+    }
+    /**
+     * 函数功能：根据GeoHash索引进行范围查询，二叉树递归算法，并将相邻的GeoHash段合并，
+     * 算法再次修订：修正了一些错误，并将深度优先遍历方式改为广度优先遍历方式，递归结束标志改为面积比率，最后进行GeoHash段的合并
+     * 编码人：刘文东，由刘文东进行重新设计与修订
+     * 修订时间：2016年9月28日16:35:36
+     * @param rQS 矩形查询范围
+     * @return 查询结果的许多GeoHash范围值，long类型
+     */
+    public static Stack<GeoHashIndexRecord> getMergedGeoHashLongsByGeoHashIndexAlgorithmWithBFSAndLevelMaxSimple(RectangleQueryScope rQS) {
+        //1. 计算查询范围的最大划分层次
+        int levelLon = (int) (Math.log(LONSIZE / rQS.deltaX) / Math.log(2));
+        int levelLat = (int) (Math.log(LATSIZE / rQS.deltaY) / Math.log(2));
+        int levelMax = Math.max(levelLon, levelLat);
+        System.out.println(levelMax);
+
+        Stack<GeoHashIndexRecord> gHIRStack = new Stack<GeoHashIndexRecord>();
+
+        int[] bfsLayerSize = new int[50];
+        bfsLayerSize[0] = 1;
+        //计算查询区域的面积，扩大10的10次方倍
+        DecimalFormat df = new DecimalFormat("#.00000");
+        long deltaX = (long) (Double.parseDouble(df.format(Math.abs(rQS.deltaX))) * 100000);
+        long deltaY = (long) (Double.parseDouble(df.format(Math.abs(rQS.deltaY))) * 100000);
+        double rQSArea = deltaX * deltaY;//计算查询范围的面积
+
+        RectanglePrefix rectanglePrefix = getRectanglePrefixFromRectangleQueryScope(rQS);//获取查询框的基本前缀
+        long rPArea = getRectangleQueryScopeAreaFromPrefix(rectanglePrefix);//由基本前缀获取基本矩形的面积
+        ArrayDeque<RectanglePrefix> rPQueue = new ArrayDeque<RectanglePrefix>();//使用队列实现广度优先遍历
+        rPQueue.push(rectanglePrefix);//将基本前缀压栈
+        //递归遍历二叉树操作，深度优先遍历，DFS
+        //int indexAAR = 0;
+        while (!rPQueue.isEmpty()) {
+            //如果队列中的节点刚好处于同一层且搜索深度大于0
+            if (rPQueue.getLast().length == rPQueue.getFirst().length && (rPQueue.getFirst().length - rectanglePrefix.length) > 0) {
+                bfsLayerSize[rPQueue.getFirst().length - rectanglePrefix.length] = rPQueue.size();//保存当前层的元素个数
+                //如果当前层有元素被舍弃
+                if (rPQueue.size() < bfsLayerSize[rPQueue.getFirst().length - rectanglePrefix.length - 1] * 2) {
+                    //开始构造索引记录对象
+                    GeoHashIndexRecord g = new GeoHashIndexRecord();
+                    g.searchDepth = rPQueue.getFirst().length - rectanglePrefix.length;//搜索深度
+                    g.rQS = rQS;//查询范围
+                    g.sizeOfRectanglePrefix = rPQueue.size();//当前层前缀码对象个数
+                    //计算当前队列中所有同层前缀对应面积的总和
+                    long rPQueueRectangleArea = rPArea >>> (rPQueue.getFirst().length - rectanglePrefix.length);//当前层前缀码对于的矩形面积
+                    long rPQueueRectangleAreaSum = 0;//面积和
+                    for (RectanglePrefix r : rPQueue) {
+                        RectangleQueryScope rQSQueue = getRectangleQueryScopeFromPrefix(r);
+                        rPQueueRectangleAreaSum += rPQueueRectangleArea;//求面积和
+                        g.rPArray.add(r);//将当前层的所有前缀码添加到索引记录对象的前缀码数组中
+                    }
+                    //将前缀码数组中的前缀码取出，求对应的GeoHash段，进行合操作，并将合并后的GeoHash段添加到索引记录对象的GeoHash段数组中
+                    g.getMergedGeoHashLongsFromRectanglePrefixArray();
+                    g.sizeOfGeoHashLongs = g.sGeoHashLongs.size();//求合并后的GeoHash段的个数
+                    g.areaRatio = rPQueueRectangleAreaSum / rQSArea;//面积比例的计算
+
+                    //若合并后的GeoHash段相同，则选择搜索深度最深的结果
+                    if (gHIRStack.empty()) {
+                        gHIRStack.push(g);
+                    } else {
+                        GeoHashIndexRecord gPop = gHIRStack.pop();
+                        if (gPop.sizeOfGeoHashLongs == g.sizeOfGeoHashLongs) {
+                            gHIRStack.push(g);
+                        } else {
+                            gHIRStack.push(gPop);
+                            gHIRStack.push(g);
+                        }
+                    }
+                }
+            }
+            //递归结束的标志
+            if (rPQueue.getFirst().length >= levelMax * 2) {
+                break;
+            }else{
+                RectanglePrefix rPNow = rPQueue.pollLast();
+                RectanglePrefix attachOne = rPNow.attachOne();//补1操作
+                RectanglePrefix attachZero = rPNow.attachZero();//补0操作
+                RectangleQueryScope attachOneRectangle = getRectangleQueryScopeFromPrefix(attachOne);
+                RectangleQueryScope attachZeroRectangle = getRectangleQueryScopeFromPrefix(attachZero);
+                //若矩形范围相交，则将前缀码压栈
+                if (rQS.isIntersectWithRectangleQueryScope(attachZeroRectangle)) {
+                    rPQueue.push(attachZero);
+                }
+                if (rQS.isIntersectWithRectangleQueryScope(attachOneRectangle)) {
+                    rPQueue.push(attachOne);
+                }
+            }
+
+        }
+        return gHIRStack;
+    }
     public static void getMergedGeoHashLongsByGeoHashIndexAlgorithmWithCenterLWD(RectangleQueryScope rQS){
 
         long geoHashValueBL = LongLatToHash(rQS.xLongitudeBL, rQS.yLatitudeBL);//获取矩形左下角点的GeoHash值，转码正确，但有精度误差

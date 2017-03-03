@@ -2,6 +2,7 @@ package cc.xidian.geoUtil;
 
 import cc.xidian.GeoHash.GeoHashConversion;
 import cc.xidian.GeoObject.GDELTEventRecordSimpleA;
+import cc.xidian.GeoObject.GeoPointTableRecordSimple;
 import cc.xidian.GeoObject.SearchDepthAndTimeOfSDU;
 
 import java.io.*;
@@ -270,6 +271,24 @@ public class FileUtil {
             System.out.println(count+","+strXY);
             bufferedWriter.write(strXY +"\n");
             count++;
+        }
+    }
+
+        public static void writeGeoPointRecordsToFile(){
+        File fileGeoPointTableLWD = new File("GeoPointSimpleRecords60M.csv");
+        for(int i=0;i<90000000;i++){
+            int geoID = (i);
+            String geoName = RandomOperation.RandomStringSimple(6);
+            double xLongitudeTemp = RandomOperation.RandomDouble(-180.0, 180.0);
+            double yLatitudeTemp = RandomOperation.RandomDouble(-90.0, 90.0);
+            long geoHashValueLongTemp = GeoHashConversion.LongLatToHash(xLongitudeTemp, yLatitudeTemp);//使用张洋的方式求long类型的GeoHash编码值
+            GeoPointTableRecordSimple g = new GeoPointTableRecordSimple(geoID,geoName,xLongitudeTemp,yLatitudeTemp,geoHashValueLongTemp);
+            System.out.println(i);
+            try{
+                FileUtil.writeGeoPointTableRecordsToFile(fileGeoPointTableLWD,g.toString()+"\n");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 }
